@@ -1,5 +1,175 @@
-<!DOCTYPE html>
-<html>
-<head><title>Cloud Social Media</title></head>
-<body><h1>UI Service is Running</h1></body>
+OCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic Sharing Wall</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: auto; }
+        
+        /* Navigation & Transitions */
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Components */
+        .form-box { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        button { background: var(--primary-color); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        .back-btn { background: #64748b; margin-bottom: 20px; }
+
+        /* Topic List */
+        .topic-card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 12px; cursor: pointer; border: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; }
+        .topic-card:hover { border-color: var(--primary-color); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.2s; }
+
+        /* Comments */
+        .comment-card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--primary-color); }
+        .timestamp { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; display: block; }
+        .comment-card img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
+        .attachment { display: inline-flex; align-items: center; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; margin-top: 10px; text-decoration: none; color: var(--primary-color); font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="listPage" class="page active">
+        <h1>📑 Discussion Topics</h1>
+        <div class="form-box">
+            <h3>Start a New Topic</h3>
+            <input type="text" id="topicInput" placeholder="Enter topic title...">
+            <button onclick="addTopic()">Create Topic</button>
+        </div>
+        <div id="topicContainer"></div>
+    </div>
+
+    <div id="detailPage" class="page">
+        <button class="back-btn" onclick="goHome()">← Back to Topics</button>
+        <h2 id="currentTopicTitle">Topic Title</h2>
+        
+        <div class="form-box">
+            <h3>Post a Message</h3>
+            <textarea id="msgInput" placeholder="Write something..."></textarea>
+            <input type="text" id="urlInput" placeholder="Image URL (optional)">
+            <input type="file" id="fileInput">
+            <button onclick="addComment()" style="background: #10b981;">Post Comment</button>
+        </div>
+
+        <div id="commentContainer"></div>
+    </div>
+</div>
+
+<script>
+    // State management
+    let topics = [
+        { id: 1, title: "Public Lobby", comments: [] }
+    ];
+    let activeTopicId = null;
+
+    // --- Navigation Logic ---
+    function goHome() {
+        document.getElementById('detailPage').classList.remove('active');
+        document.getElementById('listPage').classList.add('active');
+        renderTopics();
+    }
+
+    function openTopic(id) {
+        activeTopicId = id;
+        const topic = topics.find(t => t.id === id);
+        document.getElementById('currentTopicTitle').innerText = topic.title;
+        document.getElementById('listPage').classList.remove('active');
+        document.getElementById('detailPage').classList.add('active');
+        renderComments();
+    }
+
+    // --- Topic Logic ---
+    function addTopic() {
+        const input = document.getElementById('topicInput');
+        if (!input.value.trim()) return;
+        
+        const newTopic = {
+            id: Date.now(),
+            title: input.value,
+            comments: []
+        };
+        topics.push(newTopic);
+        input.value = '';
+        renderTopics();
+    }
+
+    function renderTopics() {
+        const container = document.getElementById('topicContainer');
+        container.innerHTML = '';
+        topics.forEach(t => {
+            const el = document.createElement('div');
+            el.className = 'topic-card';
+            el.innerHTML = `<strong>${t.title}</strong> <small>${t.comments.length} posts</small>`;
+            el.onclick = () => openTopic(t.id);
+            container.appendChild(el);
+        });
+    }
+
+    // --- Comment Logic ---
+    function addComment() {
+        const msg = document.getElementById('msgInput').value;
+        const url = document.getElementById('urlInput').value;
+        const fileIn = document.getElementById('fileInput');
+        const file = fileIn.files[0];
+
+        if (!msg && !url && !file) return alert("Please add some content!");
+
+        const topic = topics.find(t => t.id === activeTopicId);
+        const newComment = {
+            id: Date.now(),
+            text: msg,
+            imageUrl: url,
+            fileName: file ? file.name : null,
+            fileLink: file ? URL.createObjectURL(file) : null,
+            time: new Date().toLocaleString('en-US', { hour12: true }) // Record timestamp
+        };
+
+        topic.comments.unshift(newComment); // Newest on top
+        
+        // Reset inputs
+        document.getElementById('msgInput').value = '';
+        document.getElementById('urlInput').value = '';
+        fileIn.value = '';
+        renderComments();
+    }
+
+    function renderComments() {
+        const container = document.getElementById('commentContainer');
+        container.innerHTML = '';
+        const topic = topics.find(t => t.id === activeTopicId);
+
+        topic.comments.forEach(c => {
+            const el = document.createElement('div');
+            el.className = 'comment-card';
+            let content = `<span class="timestamp">🕒 ${c.time}</span>`;
+            
+            if (c.imageUrl) content += `<img src="${c.imageUrl}" onerror="this.style.display='none'">`;
+            if (c.text) content += `<p>${c.text}</p>`;
+            if (c.fileName) {
+                content += `<a class="attachment" href="${c.fileLink}" download="${c.fileName}">📁 Download: ${c.fileName}</a>`;
+            }
+            
+            el.innerHTML = content;
+            container.appendChild(el);
+        });
+    }
+
+    // Initialize
+    renderTopics();
+</script>
+
+</body>
 </html>
