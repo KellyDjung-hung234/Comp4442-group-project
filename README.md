@@ -13,7 +13,7 @@
 ---
 
 # Project Introduction 
- This project is a high-performance social media platform built for **COMP4442 Service and Cloud Computing**. It features a **Microservices Architecture (MSA)** deployed on **AWS**, utilizing state-of-the-art cloud-native tools.
+ This project ShareU is a high-performance social media platform built for **COMP4442 Service and Cloud Computing**. It features a **Microservices Architecture (MSA)** deployed on **AWS**, utilizing state-of-the-art cloud-native tools.
 
 
 We aim to using **leveraging asynchronous processing and automated infrastructure** management to solve the problem of high concurrency and the system latency in the system 
