@@ -5,7 +5,7 @@
 | Name | Student ID | Core Role | Key Responsibilities |
 | :--- | :--- | :--- | :--- |
 | **Djung Kelly Ka Yee** | 24035008D | **Cloud Architect & DevOps** | AWS infrastructure design, Terraform IaC scripts, k3s cluster orchestration, and GitHub Actions CI/CD pipeline. |
-|  |  | **Backend Engineer (Callee)** | Core business logic in Callee service, Amazon RDS schema design, and ensuring thread-safe Service Beans. |
+| **Leung Shing Huen** | 24026257D | **Backend Engineer (Callee)** | Core business logic in Callee service, Amazon RDS schema design, and ensuring thread-safe Service Beans. |
 | **Kwan Chi Fung**  | 24022267D | **Full-stack Engineer (Caller)** | UI Service (Caller) development, Vanilla JS async frontend, AWS SQS integration, and S3 media management. |
 
 
