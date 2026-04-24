@@ -17,3 +17,16 @@ CREATE TABLE comments (
 );
 
 CREATE INDEX idx_comments_topic_created_at ON comments(topic_id, created_at DESC);
+
+CREATE TABLE reports (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    target_type VARCHAR(16) NOT NULL,
+    target_id BIGINT NOT NULL,
+    reason VARCHAR(64) NOT NULL,
+    details VARCHAR(1000) NULL,
+    created_by BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_reports_user FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+CREATE INDEX idx_reports_target ON reports(target_type, target_id);

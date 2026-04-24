@@ -677,9 +677,32 @@
         targetReportType = null;
     }
 
-    function submitReport() {
+    async function submitReport() {
+        if (!currentUserId) {
+            closeReportModal();
+            return showToast("Please login first.", "warning");
+        }
+
+        const reason = document.getElementById('reportReason').value;
+        const details = document.getElementById('reportDetails').value;
+
+        try {
+            await apiRequest('/reports', {
+                method: 'POST',
+                body: JSON.stringify({
+                    targetType: targetReportType,
+                    targetId: targetReportId,
+                    reason,
+                    details,
+                    createdBy: currentUserId
+                })
+            });
+            showToast("Report submitted successfully for review.", "warning");
+        } catch (e) {
+            showToast("Failed to submit report: " + e.message);
+        }
+
         closeReportModal();
-        showToast("Report submitted successfully for review.", "warning");
     }
 
     function openDeleteModal(id, type, event) {
