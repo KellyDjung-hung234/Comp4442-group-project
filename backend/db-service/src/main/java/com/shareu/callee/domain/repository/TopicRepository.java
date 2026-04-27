@@ -11,9 +11,13 @@ public interface TopicRepository {
 
     Optional<Topic> findById(long topicId);
 
+    boolean existsById(long topicId);
+
     List<Topic> findPage(int page, int size);
 
     long countAll();
+
+    void updateCommentCount(long topicId, long commentCount);
 
     boolean deleteById(long topicId);
 }

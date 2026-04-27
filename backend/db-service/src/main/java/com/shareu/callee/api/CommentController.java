@@ -1,9 +1,9 @@
 package com.shareu.callee.api;
 
-import com.shareu.callee.dto.request.CreateTopicRequest;
+import com.shareu.callee.dto.request.CreateCommentRequest;
+import com.shareu.callee.dto.response.CommentResponse;
 import com.shareu.callee.dto.response.PageResponse;
-import com.shareu.callee.dto.response.TopicResponse;
-import com.shareu.callee.service.TopicService;
+import com.shareu.callee.service.CommentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,38 +18,37 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/topics")
+@RequestMapping("/api/v1")
 @CrossOrigin(origins = {"http://localhost:8080", "http://127.0.0.1:8080"})
-public class TopicController {
+public class CommentController {
 
-    private final TopicService topicService;
+    private final CommentService commentService;
 
-    public TopicController(TopicService topicService) {
-        this.topicService = topicService;
+    public CommentController(CommentService commentService) {
+        this.commentService = commentService;
     }
 
-    @PostMapping
-    public ResponseEntity<TopicResponse> createTopic(@Valid @RequestBody CreateTopicRequest request) {
-        TopicResponse response = topicService.createTopic(request);
+    @PostMapping("/topics/{topicId}/comments")
+    public ResponseEntity<CommentResponse> createComment(
+            @PathVariable long topicId,
+            @Valid @RequestBody CreateCommentRequest request
+    ) {
+        CommentResponse response = commentService.createComment(topicId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping
-    public PageResponse<TopicResponse> listTopics(
+    @GetMapping("/topics/{topicId}/comments")
+    public PageResponse<CommentResponse> listComments(
+            @PathVariable long topicId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        return topicService.listTopics(page, size);
+        return commentService.listComments(topicId, page, size);
     }
 
-    @GetMapping("/{topicId}")
-    public TopicResponse getTopic(@PathVariable long topicId) {
-        return topicService.getTopic(topicId);
-    }
-
-    @DeleteMapping("/{topicId}")
-    public ResponseEntity<Void> deleteTopic(@PathVariable long topicId) {
-        topicService.deleteTopic(topicId);
+    @DeleteMapping("/topics/{topicId}/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable long topicId, @PathVariable long commentId) {
+        commentService.deleteComment(commentId, topicId);
         return ResponseEntity.noContent().build();
     }
 }

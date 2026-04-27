@@ -338,27 +338,85 @@
 
 <script>
     // --- State Management ---
-    let currentUser = null; 
+    const API_BASE = 'http://localhost:8081/api/v1';
+
+    let currentUser = null;
+    let currentUserId = null;
     let activeTopicId = null;
     let targetReportId = null; 
     let targetReportType = null; 
     let targetDeleteId = null; 
     let targetDeleteType = null; 
 
-    let topics = [
-        { 
-            id: 1, 
-            author: "System_Admin", 
-            content: "Welcome to shareU! You can share files, photos, and videos here.", 
-            time: "10:00 AM", 
-            status: "CLEAN", 
-            likes: 5, 
-            dislikes: 0, 
-            fileUrl: null, fileType: null, fileName: null,
-            userReactions: {}, 
-            comments: [] 
+    let topics = [];
+
+    async function apiRequest(path, options = {}) {
+        const res = await fetch(`${API_BASE}${path}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            },
+            ...options
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || `HTTP ${res.status}`);
         }
-    ];
+
+        if (res.status === 204) return null;
+        return res.json();
+    }
+
+    function mapBackendTopicToUi(t) {
+        return {
+            id: t.id,
+            author: t.createdBy === currentUserId ? currentUser : `user_${t.createdBy}`,
+            content: t.title,
+            time: new Date(t.createdAt).toLocaleString(),
+            status: "CLEAN",
+            likes: 0,
+            dislikes: 0,
+            fileUrl: null,
+            fileType: null,
+            fileName: null,
+            userReactions: {},
+            comments: [],
+            commentCount: t.commentCount || 0,
+            createdBy: t.createdBy
+        };
+    }
+
+    function mapBackendCommentToUi(c) {
+        return {
+            id: c.id,
+            author: c.createdBy === currentUserId ? currentUser : `user_${c.createdBy}`,
+            text: c.text,
+            time: new Date(c.createdAt).toLocaleString(),
+            status: "CLEAN",
+            likes: 0,
+            dislikes: 0,
+            fileUrl: null,
+            fileType: null,
+            fileName: null,
+            userReactions: {},
+            createdBy: c.createdBy
+        };
+    }
+
+    async function loadTopicsFromBackend() {
+        const page = await apiRequest('/topics?page=0&size=50');
+        topics = (page.content || []).map(mapBackendTopicToUi);
+    }
+
+    async function loadCommentsForTopic(topicId) {
+        const topic = topics.find(t => t.id === topicId);
+        if (!topic) return;
+
+        const page = await apiRequest(`/topics/${topicId}/comments?page=0&size=100`);
+        topic.comments = (page.content || []).map(mapBackendCommentToUi);
+        topic.commentCount = page.totalElements || topic.comments.length;
+    }
 
     // --- Custom Toast Notification System ---
     function showToast(message, type = 'error') {
@@ -415,11 +473,19 @@
         return hasLength && hasUpper && hasLower && hasNum;
     }
 
-    function requestOTP() {
+    async function requestOTP() {
         const username = document.getElementById('regUsername').value;
         if (!username) return showToast("Please enter a username first to receive OTP.");
-        showToast("OTP sent to registered contact for " + username + " (Mock: 123456)", "success");
-        document.getElementById('otpBtn').innerText = "Resend OTP";
+        try {
+            const result = await apiRequest('/auth/request-otp', {
+                method: 'POST',
+                body: JSON.stringify({ username })
+            });
+            showToast(`OTP sent for ${username} (Demo OTP: ${result.otp})`, "success");
+            document.getElementById('otpBtn').innerText = "Resend OTP";
+        } catch (e) {
+            showToast("Failed to request OTP: " + e.message);
+        }
     }
 
     function openTermsPage(event) {
@@ -439,7 +505,7 @@
         showToast("Terms of Use accepted.", "success");
     }
 
-    function register() {
+    async function register() {
         const username = document.getElementById('regUsername').value;
         const pw = document.getElementById('regPassword').value;
         const pwConfirm = document.getElementById('regConfirmPassword').value;
@@ -452,31 +518,60 @@
         if (!otp) return showToast("Please enter the OTP.");
         if (!termsChecked) return showToast("You must agree to the Terms of Use.");
 
-        showToast("Registration successful! You may now log in.", "success");
-        
-        document.getElementById('regUsername').value = '';
-        document.getElementById('regPassword').value = '';
-        document.getElementById('regConfirmPassword').value = '';
-        document.getElementById('regOtp').value = '';
-        document.getElementById('regTerms').checked = false;
-        validatePasswordPolicy(); 
+        try {
+            await apiRequest('/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({
+                    username,
+                    password: pw,
+                    otp,
+                    termsAccepted: termsChecked
+                })
+            });
 
-        toggleAuth('login');
+            showToast("Registration successful! You may now log in.", "success");
+
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regConfirmPassword').value = '';
+            document.getElementById('regOtp').value = '';
+            document.getElementById('regTerms').checked = false;
+            validatePasswordPolicy();
+
+            toggleAuth('login');
+        } catch (e) {
+            showToast("Registration failed: " + e.message);
+        }
     }
 
-    function login() {
+    async function login() {
         const user = document.getElementById('loginUsername').value;
+        const pw = document.getElementById('loginPassword').value;
         if(!user) return showToast("Please enter username!");
-        currentUser = user;
-        document.getElementById('welcomeMsg').innerText = "Logged in as: " + currentUser;
-        document.getElementById('navUserInfo').style.display = "flex";
-        showToast("Login successful!", "success");
-        switchPage('listPage');
-        renderTopics();
+        if(!pw) return showToast("Please enter password!");
+
+        try {
+            const result = await apiRequest('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ username: user, password: pw })
+            });
+
+            currentUser = result.username;
+            currentUserId = result.userId;
+            document.getElementById('welcomeMsg').innerText = "Logged in as: " + currentUser;
+            document.getElementById('navUserInfo').style.display = "flex";
+            showToast("Login successful!", "success");
+            switchPage('listPage');
+            await loadTopicsFromBackend();
+            renderTopics();
+        } catch (e) {
+            showToast("Login failed: " + e.message);
+        }
     }
 
     function logout() {
         currentUser = null;
+        currentUserId = null;
         document.getElementById('navUserInfo').style.display = "none";
         document.getElementById('loginUsername').value = '';
         document.getElementById('loginPassword').value = '';
@@ -484,14 +579,16 @@
         switchPage('authPage');
     }
 
-    function goHome() { 
+    async function goHome() { 
         switchPage('listPage'); 
+        await loadTopicsFromBackend();
         renderTopics(); 
     }
 
-    function openTopic(id) {
+    async function openTopic(id) {
         activeTopicId = id;
         switchPage('detailPage');
+        await loadCommentsForTopic(id);
         renderOriginalPost();
     }
 
@@ -580,9 +677,32 @@
         targetReportType = null;
     }
 
-    function submitReport() {
+    async function submitReport() {
+        if (!currentUserId) {
+            closeReportModal();
+            return showToast("Please login first.", "warning");
+        }
+
+        const reason = document.getElementById('reportReason').value;
+        const details = document.getElementById('reportDetails').value;
+
+        try {
+            await apiRequest('/reports', {
+                method: 'POST',
+                body: JSON.stringify({
+                    targetType: targetReportType,
+                    targetId: targetReportId,
+                    reason,
+                    details,
+                    createdBy: currentUserId
+                })
+            });
+            showToast("Report submitted successfully for review.", "warning");
+        } catch (e) {
+            showToast("Failed to submit report: " + e.message);
+        }
+
         closeReportModal();
-        showToast("Report submitted successfully for review.", "warning");
     }
 
     function openDeleteModal(id, type, event) {
@@ -600,25 +720,36 @@
         targetDeleteType = null;
     }
 
-    function confirmDelete() {
+    async function confirmDelete() {
         if(!targetDeleteId) return;
         
         if (targetDeleteType === 'post') {
-            topics = topics.filter(t => t.id !== targetDeleteId);
-            showToast("Post deleted successfully.", "success");
-            
-            if (activeTopicId === targetDeleteId) {
-                goHome();
-            } else {
-                renderTopics(); 
+            try {
+                await apiRequest(`/topics/${targetDeleteId}`, { method: 'DELETE' });
+                topics = topics.filter(t => t.id !== targetDeleteId);
+                showToast("Post deleted successfully.", "success");
+
+                if (activeTopicId === targetDeleteId) {
+                    await goHome();
+                } else {
+                    renderTopics();
+                }
+            } catch (e) {
+                showToast("Failed to delete post: " + e.message);
             }
         } else if (targetDeleteType === 'comment') {
             const topic = topics.find(t => t.id === activeTopicId);
             if(topic) {
-                topic.comments = topic.comments.filter(c => c.id !== targetDeleteId);
-                showToast("Comment deleted successfully.", "success");
-                renderComments();
-                renderOriginalPost(); 
+                try {
+                    await apiRequest(`/topics/${activeTopicId}/comments/${targetDeleteId}`, { method: 'DELETE' });
+                    topic.comments = topic.comments.filter(c => c.id !== targetDeleteId);
+                    topic.commentCount = Math.max(0, (topic.commentCount || 0) - 1);
+                    showToast("Comment deleted successfully.", "success");
+                    renderComments();
+                    renderOriginalPost();
+                } catch (e) {
+                    showToast("Failed to delete comment: " + e.message);
+                }
             }
         }
         closeDeleteModal();
@@ -632,7 +763,7 @@
             case 'oldest': sorted.sort((a,b) => a.id - b.id); break;
             case 'most_likes': sorted.sort((a,b) => b.likes - a.likes); break;
             case 'most_dislikes': sorted.sort((a,b) => b.dislikes - a.dislikes); break;
-            case 'most_comments': sorted.sort((a,b) => (b.comments ? b.comments.length : 0) - (a.comments ? a.comments.length : 0)); break;
+            case 'most_comments': sorted.sort((a,b) => (b.commentCount ?? (b.comments ? b.comments.length : 0)) - (a.commentCount ?? (a.comments ? a.comments.length : 0))); break;
         }
         return sorted;
     }
@@ -675,49 +806,39 @@
     }
 
     // --- Post Management ---
-    function addTopic() {
+    async function addTopic() {
         if(!currentUser) return showToast("You must be logged in to post.");
         const input = document.getElementById('topicInput').value;
         const fileInput = document.getElementById('mediaUpload').files[0];
         if (!input.trim() && !fileInput) return showToast("Post cannot be empty.");
-        
-        let postStatus = "CLEAN";
-        let tempFileUrl = null; let tempFileType = null; let tempFileName = null;
-
-        if (fileInput) {
-            postStatus = "SCANNING"; 
-            tempFileUrl = URL.createObjectURL(fileInput);
-            tempFileType = fileInput.type;
-            tempFileName = fileInput.name;
+        if (input.trim().length < 3 || input.trim().length > 120) {
+            return showToast("Post text must be between 3 and 120 characters.");
         }
 
-        const newTopic = {
-            id: Date.now(), author: currentUser, content: input,
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            status: postStatus, likes: 0, dislikes: 0,
-            fileUrl: tempFileUrl, fileType: tempFileType, fileName: tempFileName,
-            userReactions: {}, comments: []
-        };
-        
-        topics.push(newTopic);
-        
+        if (fileInput) {
+            showToast("File upload backend is not implemented yet. Posting text only.", "warning");
+        }
+
+        try {
+            await apiRequest('/topics', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: input.trim(),
+                    createdBy: currentUserId
+                })
+            });
+        } catch (e) {
+            return showToast("Failed to create post: " + e.message);
+        }
+
         document.getElementById('topicInput').value = '';
         document.getElementById('mediaUpload').value = '';
         document.getElementById('mediaPreview').style.display = 'none';
         document.getElementById('postSort').value = 'newest';
+
+        await loadTopicsFromBackend();
         renderTopics();
         showToast("Post submitted successfully!", "success");
-
-        if(postStatus === "SCANNING") {
-            setTimeout(() => {
-                const t = topics.find(t => t.id === newTopic.id);
-                if(t) { 
-                    t.status = "CLEAN"; 
-                    renderTopics(); 
-                    if(activeTopicId === newTopic.id) renderOriginalPost();
-                }
-            }, 5000); 
-        }
     }
 
     function handleReactionToggle(item, reactionType) {
@@ -737,22 +858,66 @@
         return true;
     }
 
-    function togglePostReaction(id, type, event) {
+    async function togglePostReaction(id, type, event) {
         if(event) event.stopPropagation();
         const topic = topics.find(t => t.id === id);
         if(!topic) return;
-        if(handleReactionToggle(topic, type)) {
+
+        if (!currentUserId) {
+            return showToast("Please login to react.", "warning");
+        }
+
+        try {
+            const res = await apiRequest(`/reactions/topics/${id}`, {
+                method: 'POST',
+                body: JSON.stringify({ userId: currentUserId, type })
+            });
+
+            topic.likes = res.likes;
+            topic.dislikes = res.dislikes;
+            if (!topic.userReactions) topic.userReactions = {};
+            if (res.currentReaction) {
+                topic.userReactions[currentUser] = res.currentReaction;
+            } else {
+                delete topic.userReactions[currentUser];
+            }
+
             renderTopics();
             if(activeTopicId === id) renderOriginalPost();
+        } catch (e) {
+            showToast("Failed to update reaction: " + e.message);
         }
     }
 
-    function toggleCommentReaction(topicId, commentId, type) {
+    async function toggleCommentReaction(topicId, commentId, type) {
         const topic = topics.find(t => t.id === topicId);
         if(!topic) return;
         const comment = topic.comments.find(c => c.id === commentId);
         if(!comment) return;
-        if(handleReactionToggle(comment, type)) renderComments();
+
+        if (!currentUserId) {
+            return showToast("Please login to react.", "warning");
+        }
+
+        try {
+            const res = await apiRequest(`/reactions/comments/${commentId}`, {
+                method: 'POST',
+                body: JSON.stringify({ userId: currentUserId, type })
+            });
+
+            comment.likes = res.likes;
+            comment.dislikes = res.dislikes;
+            if (!comment.userReactions) comment.userReactions = {};
+            if (res.currentReaction) {
+                comment.userReactions[currentUser] = res.currentReaction;
+            } else {
+                delete comment.userReactions[currentUser];
+            }
+
+            renderComments();
+        } catch (e) {
+            showToast("Failed to update reaction: " + e.message);
+        }
     }
 
     function renderTopics() {
@@ -784,11 +949,11 @@
                 <div class="reaction-container">
                     <button class="reaction-btn ${likeClass}" onclick="togglePostReaction(${t.id}, 'like', event)">👍 Like (${t.likes})</button>
                     <button class="reaction-btn ${dislikeClass}" onclick="togglePostReaction(${t.id}, 'dislike', event)">👎 Dislike (${t.dislikes})</button>
-                    <span style="font-size: 13px; color: #64748b; margin-left: 10px;">Comments: ${t.comments.length}</span>
+                    <span style="font-size: 13px; color: #64748b; margin-left: 10px;">Comments: ${t.commentCount || t.comments.length}</span>
                     ${generateActionButtonsHtml(t.id, t.author, 'post')}
                 </div>
             `;
-            el.onclick = () => openTopic(t.id);
+            el.onclick = async () => { await openTopic(t.id); };
             container.appendChild(el);
         });
     }
@@ -838,7 +1003,7 @@
         renderComments(); 
     }
 
-    function addComment() {
+    async function addComment() {
         if(!currentUser) return showToast("You must be logged in to comment.");
         const msg = document.getElementById('msgInput').value;
         const fileInput = document.getElementById('commentMediaUpload').files[0];
@@ -848,44 +1013,33 @@
         const topic = topics.find(t => t.id === activeTopicId);
         if(!topic) return;
         
-        let commentStatus = "CLEAN";
-        let tempFileUrl = null; let tempFileType = null; let tempFileName = null;
-
         if (fileInput) {
-            commentStatus = "SCANNING"; 
-            tempFileUrl = URL.createObjectURL(fileInput);
-            tempFileType = fileInput.type;
-            tempFileName = fileInput.name;
+            showToast("Comment file upload backend is not implemented yet. Sending text only.", "warning");
         }
 
-        const newComment = {
-            id: Date.now(), author: currentUser, text: msg,
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            status: commentStatus, likes: 0, dislikes: 0,
-            fileUrl: tempFileUrl, fileType: tempFileType, fileName: tempFileName,
-            userReactions: {}
-        };
-
-        topic.comments.push(newComment); 
+        try {
+            await apiRequest(`/topics/${activeTopicId}/comments`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    text: msg.trim(),
+                    createdBy: currentUserId
+                })
+            });
+        } catch (e) {
+            return showToast("Failed to add comment: " + e.message);
+        }
         
         document.getElementById('msgInput').value = '';
         document.getElementById('commentMediaUpload').value = '';
         document.getElementById('commentMediaPreview').style.display = 'none';
         document.getElementById('commentSort').value = 'newest';
+
+        await loadCommentsForTopic(activeTopicId);
+        await loadTopicsFromBackend();
         
         showToast("Comment added successfully!", "success");
         renderComments();
         renderOriginalPost(); 
-        
-        if(commentStatus === "SCANNING") {
-            setTimeout(() => {
-                const c = topic.comments.find(c => c.id === newComment.id);
-                if(c) { 
-                    c.status = "CLEAN"; 
-                    renderComments(); 
-                }
-            }, 5000); 
-        }
     }
 
     function renderComments() {
