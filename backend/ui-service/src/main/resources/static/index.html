@@ -209,6 +209,7 @@
     <div class="nav-brand">shareU</div>
     <div class="nav-user" id="navUserInfo">
         <span id="welcomeMsg"></span>
+        <button onclick="openAdminPanel()" style="background:var(--warning-color); width:auto; margin-right:10px;">Admin</button>
         <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 </div>
@@ -333,6 +334,17 @@
             <div id="commentContainer"></div>
         </div>
     </div>
+
+    <div id="adminPage" class="page">
+        <button class="back-btn" onclick="goHome()">← Back to Feed</button>
+        <h1>🛡️ Admin Control</h1>
+        <p>Please review reported posts below:</p>
+        <div id="reportedTopicContainer"></div>
+    </div>
+
+</div>
+
+    
 
 </div>
 
@@ -581,8 +593,12 @@
     }
 
     function submitReport() {
+        const topic = topics.find(t => t.id === targetReportId);
+        if (topic) {
+        topic.isReported = true; 
+        showToast("Post reported successfully to Admin.", "success");}
         closeReportModal();
-        showToast("Report submitted successfully for review.", "warning");
+        renderTopics();
     }
 
     function openDeleteModal(id, type, event) {
@@ -696,7 +712,8 @@
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             status: postStatus, likes: 0, dislikes: 0,
             fileUrl: tempFileUrl, fileType: tempFileType, fileName: tempFileName,
-            userReactions: {}, comments: []
+            userReactions: {}, comments: [],
+            isReported: false, adminStatus: 'active'
         };
         
         topics.push(newTopic);
@@ -760,7 +777,8 @@
         container.innerHTML = '';
         
         const sortType = document.getElementById('postSort').value;
-        const sortedTopics = sortItems(topics, sortType);
+        const visibleTopics = topics.filter(t => t.adminStatus !== 'blocked');
+        const sortedTopics = sortItems(visibleTopics, sortType);
 
         sortedTopics.forEach(t => {
             const el = document.createElement('div');
@@ -929,6 +947,55 @@
             container.appendChild(el);
         });
     }
+
+
+// Admin page function
+function openAdminPanel() {
+    switchPage('adminPage'); 
+    renderReportedTopics();  
+}
+
+// show all reported topics in admin page
+function renderReportedTopics() {
+    const container = document.getElementById('reportedTopicContainer');
+    container.innerHTML = '';
+    
+    // find all topics that are reported
+    const reportedList = topics.filter(t => t.isReported === true);
+
+    if (reportedList.length === 0) {
+        container.innerHTML = "<p>Nice! No reports to handle.</p>";
+        return;
+    }
+    
+    // display each reported topic with audit buttons
+    reportedList.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'topic-card';
+        div.innerHTML = `
+            <p><strong>Author:</strong> ${t.author}</p>
+            <p>${t.content}</p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="moderate(${t.id}, 'blocked')" style="background:var(--error-color)">🚫 Block</button>
+                <button onclick="moderate(${t.id}, 'safe')" style="background:var(--success-color)">✅ Safe</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// admin audit action: block or safe
+function moderate(id, result) {
+    const topic = topics.find(t => t.id === id);
+    if (result === 'blocked') {
+        topic.adminStatus = 'blocked'; 
+    }
+    topic.isReported = false; 
+    
+    showToast("Moderation completed!", "success");
+    renderReportedTopics(); // refresh the admin panel
+}
+
 </script>
 
 </body>
