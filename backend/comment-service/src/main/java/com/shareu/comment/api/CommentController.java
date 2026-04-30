@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1")
-@CrossOrigin(origins = {"http://localhost:8080", "http://127.0.0.1:8080"})
+@CrossOrigin(origins = {"http://localhost:8089", "http://127.0.0.1:8089", "http://localhost:8080", "http://127.0.0.1:8080"})
 public class CommentController {
 
     private final CommentService commentService;
@@ -44,6 +46,11 @@ public class CommentController {
             @RequestParam(defaultValue = "20") int size
     ) {
         return commentService.listComments(topicId, page, size);
+    }
+
+    @GetMapping("/comments/user/{userId}")
+    public List<CommentResponse> listCommentsByUser(@PathVariable long userId) {
+        return commentService.listCommentsByUser(userId);
     }
 
     @DeleteMapping("/topics/{topicId}/comments/{commentId}")

@@ -19,13 +19,20 @@ public class JdbcTopicRepository implements TopicRepository {
             rs.getLong("id"),
             rs.getString("title"),
             rs.getLong("created_by"),
+            rs.getString("author_username"),
             rs.getLong("comment_count"),
+            rs.getLong("like_count"),
+            rs.getLong("dislike_count"),
             rs.getLong("version"),
             rs.getTimestamp("created_at").toInstant(),
             rs.getTimestamp("updated_at").toInstant()
     );
 
     private final JdbcTemplate jdbcTemplate;
+    private static final String TOPIC_SELECT =
+            "SELECT t.id, t.title, t.created_by, COALESCE(u.username, CONCAT('User #', t.created_by)) AS author_username, " +
+                    "t.comment_count, t.like_count, t.dislike_count, t.version, t.created_at, t.updated_at " +
+                    "FROM topics t LEFT JOIN users u ON u.id = t.created_by ";
 
     public JdbcTopicRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -56,7 +63,7 @@ public class JdbcTopicRepository implements TopicRepository {
     @Override
     public Optional<Topic> findById(long topicId) {
         List<Topic> rows = jdbcTemplate.query(
-                "SELECT id, title, created_by, comment_count, version, created_at, updated_at FROM topics WHERE id = ?",
+                TOPIC_SELECT + "WHERE t.id = ? AND t.is_deleted = FALSE",
                 TOPIC_ROW_MAPPER,
                 topicId
         );
@@ -66,7 +73,7 @@ public class JdbcTopicRepository implements TopicRepository {
     @Override
     public boolean existsById(long topicId) {
         Long count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM topics WHERE id = ?",
+                "SELECT COUNT(*) FROM topics WHERE id = ? AND is_deleted = FALSE",
                 Long.class,
                 topicId
         );
@@ -77,7 +84,7 @@ public class JdbcTopicRepository implements TopicRepository {
     public List<Topic> findPage(int page, int size) {
         int offset = page * size;
         return jdbcTemplate.query(
-                "SELECT id, title, created_by, comment_count, version, created_at, updated_at FROM topics ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                TOPIC_SELECT + "WHERE t.is_deleted = FALSE ORDER BY t.created_at DESC LIMIT ? OFFSET ?",
                 TOPIC_ROW_MAPPER,
                 size,
                 offset
@@ -85,8 +92,30 @@ public class JdbcTopicRepository implements TopicRepository {
     }
 
     @Override
+    public List<Topic> findByCreatedBy(long createdBy, int page, int size) {
+        int offset = page * size;
+        return jdbcTemplate.query(
+                TOPIC_SELECT + "WHERE t.created_by = ? AND t.is_deleted = FALSE ORDER BY t.created_at DESC LIMIT ? OFFSET ?",
+                TOPIC_ROW_MAPPER,
+                createdBy,
+                size,
+                offset
+        );
+    }
+
+    @Override
     public long countAll() {
-        Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM topics", Long.class);
+        Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM topics WHERE is_deleted = FALSE", Long.class);
+        return count == null ? 0L : count;
+    }
+
+    @Override
+    public long countByCreatedBy(long createdBy) {
+        Long count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM topics WHERE created_by = ? AND is_deleted = FALSE",
+                Long.class,
+                createdBy
+        );
         return count == null ? 0L : count;
     }
 
@@ -100,8 +129,21 @@ public class JdbcTopicRepository implements TopicRepository {
     }
 
     @Override
+    public void updateReactionCounts(long topicId, long likeCount, long dislikeCount) {
+        jdbcTemplate.update(
+                "UPDATE topics SET like_count = ?, dislike_count = ? WHERE id = ?",
+                likeCount,
+                dislikeCount,
+                topicId
+        );
+    }
+
+    @Override
     public boolean deleteById(long topicId) {
-        int affected = jdbcTemplate.update("DELETE FROM topics WHERE id = ?", topicId);
+        int affected = jdbcTemplate.update(
+                "UPDATE topics SET is_deleted = TRUE, deleted_at = NOW() WHERE id = ? AND is_deleted = FALSE",
+                topicId
+        );
         return affected > 0;
     }
 }

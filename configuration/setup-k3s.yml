@@ -1,1 +1,61 @@
-# Ansible Playbook to setup k3s on EC2
+---
+- name: Install k3s on Ubuntu EC2 nodes
+	hosts: k3s_nodes
+	become: true
+	vars:
+		k3s_install_script: https://get.k3s.io
+	tasks:
+		- name: Update apt cache
+			apt:
+				update_cache: yes
+				cache_valid_time: 3600
+
+		- name: Install required packages
+			apt:
+				name:
+					- curl
+					- ca-certificates
+					- gnupg
+					- lsb-release
+				state: present
+				update_cache: yes
+
+		- name: Download and run k3s install script
+			shell: curl -sfL {{ k3s_install_script }} | sh -
+			args:
+				warn: false
+
+		- name: Ensure ubuntu user can read k3s kubeconfig
+			file:
+				path: /etc/rancher/k3s/k3s.yaml
+				owner: root
+				group: root
+				mode: '0644'
+
+		- name: Ensure .kube directory exists for ubuntu
+			file:
+				path: /home/ubuntu/.kube
+				state: directory
+				owner: ubuntu
+				group: ubuntu
+				mode: '0700'
+			ignore_errors: yes
+
+		- name: Copy kubeconfig for ubuntu user (optional)
+			copy:
+				src: /etc/rancher/k3s/k3s.yaml
+				dest: /home/ubuntu/.kube/config
+				owner: ubuntu
+				group: ubuntu
+				mode: '0600'
+			ignore_errors: yes
+
+		- name: Move kubeconfig into place for ubuntu user
+			shell: |
+				mkdir -p /home/ubuntu/.kube || true
+				cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config || true
+				chown ubuntu:ubuntu /home/ubuntu/.kube/config || true
+				chmod 600 /home/ubuntu/.kube/config || true
+			args:
+				warn: false
+			ignore_errors: yes

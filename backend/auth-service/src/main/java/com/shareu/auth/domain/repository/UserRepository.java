@@ -6,7 +6,10 @@ public interface UserRepository {
 
     boolean existsByUsername(String username);
 
-    long create(String username, String displayName, String password);
+    long create(String username, String password);
 
     java.util.Optional<UserAuthRecord> findAuthByUsername(String username);
+
+    // Update the stored password for a user (username treated as email/identifier)
+    int updatePassword(String username, String newPassword);
 }

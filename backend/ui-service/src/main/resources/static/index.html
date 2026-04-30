@@ -23,6 +23,32 @@
         .nav-brand { font-size: 22px; font-weight: bold; color: var(--primary-color); letter-spacing: -0.5px; }
         .nav-user { display: none; align-items: center; gap: 15px; }
         .logout-btn { background: var(--error-color); padding: 6px 12px; font-size: 14px; }
+        .nav-btn { width: auto; padding: 8px 12px; font-size: 14px; }
+        .nav-btn.secondary { background: #64748b; }
+        .nav-btn.warning { background: #f59e0b; }
+
+        .nav-shell { position: relative; }
+        .notifications-panel {
+            display: none;
+            position: absolute;
+            top: 58px;
+            right: 20px;
+            width: 340px;
+            max-height: 360px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+            z-index: 2000;
+        }
+        .notifications-panel.active { display: block; }
+        .notifications-header { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: var(--text-main); }
+        .notification-item { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+        .notification-item:hover { background: #f8fafc; }
+        .notification-item:last-child { border-bottom: none; }
+        .notification-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .notification-badge { display: inline-block; min-width: 20px; padding: 2px 6px; border-radius: 999px; background: var(--error-color); color: white; font-size: 12px; text-align: center; }
 
         .container { max-width: 700px; margin: auto; padding: 0 20px; }
         
@@ -193,23 +219,66 @@
     </div>
 </div>
 
+<div id="forgotModal" class="overlay-modal" onclick="closeForgotModal()">
+    <div class="auth-card" style="width: 380px; margin: 0; cursor: default;" onclick="event.stopPropagation()">
+        <h3 style="margin-top: 0; color: var(--primary-color);">Forgot Password</h3>
+        <p style="font-size: 14px; color: var(--text-muted);">Enter your account email to receive an OTP for password reset.</p>
+        <input type="text" id="forgotEmail" placeholder="Email address">
+        <div style="display:flex;gap:10px;margin-top:12px;">
+            <button onclick="submitForgot()" style="flex:1;background:var(--primary-color);">Send OTP</button>
+            <button onclick="closeForgotModal()" style="flex:1;background:#64748b;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="resetModal" class="overlay-modal" onclick="closeResetModal()">
+    <div class="auth-card" style="width: 380px; margin: 0; cursor: default;" onclick="event.stopPropagation()">
+        <h3 style="margin-top: 0; color: var(--success-color);">Reset Password</h3>
+        <p style="font-size: 14px; color: var(--text-muted);">Enter the OTP you received and choose a new password.</p>
+        <input type="text" id="resetEmail" placeholder="Email address">
+        <input type="text" id="resetOtp" placeholder="OTP code" style="margin-top:8px;">
+        <input type="password" id="resetNewPassword" placeholder="New password" style="margin-top:8px;">
+        <div style="display:flex;gap:10px;margin-top:12px;">
+            <button onclick="submitReset()" style="flex:1;background:var(--success-color);">Reset</button>
+            <button onclick="closeResetModal()" style="flex:1;background:#64748b;">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <div id="deleteModal" class="overlay-modal" onclick="closeDeleteModal()">
-    <div class="auth-card" style="width: 350px; margin: 0; cursor: default; text-align: center;" onclick="event.stopPropagation()">
+    <div class="auth-card" style="width: 350px; margin: 0; cursor: default; text-align: center; background: #fff;" onclick="event.stopPropagation()">
         <h3 id="deleteModalTitle" style="margin-top: 0; color: var(--error-color);">Delete Content</h3>
-        <p style="font-size: 14px; color: var(--text-muted);">Are you sure you want to permanently delete this? This action cannot be undone.</p>
+        <p style="font-size: 14px; color: var(--text-muted);">Are you sure you want to delete this content? It will be hidden from the feed.</p>
         
         <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button style="background: var(--error-color);" onclick="confirmDelete()">Yes, Delete</button>
-            <button style="background: #64748b;" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" style="background: var(--error-color);" onclick="confirmDelete()">Yes, Delete</button>
+            <button class="btn btn-secondary" style="background: #64748b;" onclick="closeDeleteModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="banModal" class="overlay-modal" onclick="closeBanModal()">
+    <div class="auth-card" style="width: 350px; margin: 0; cursor: default; text-align: center; background: #fff;" onclick="event.stopPropagation()">
+        <h3 id="banModalTitle" style="margin-top: 0; color: var(--error-color);">Ban User</h3>
+        <p id="banModalMessage" style="font-size: 14px; color: var(--text-muted);">This user will be banned from posting and commenting. Continue?</p>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-danger" style="background: var(--error-color);" onclick="confirmBanUser()">Yes, Ban</button>
+            <button class="btn btn-secondary" style="background: #64748b;" onclick="closeBanModal()">Cancel</button>
         </div>
     </div>
 </div>
 
 <div class="navbar">
     <div class="nav-brand">shareU</div>
-    <div class="nav-user" id="navUserInfo">
+    <div class="nav-user nav-shell" id="navUserInfo">
         <span id="welcomeMsg"></span>
+        <button id="adminDashboardBtn" class="nav-btn secondary" style="display:none;" onclick="window.location.href='/admin.html'">Admin Dashboard</button>
+        <button id="notificationsBtn" class="nav-btn warning" style="display:none;" onclick="toggleNotificationsPanel()">
+            Notifications <span id="notificationCount" class="notification-badge" style="display:none;">0</span>
+        </button>
         <button class="logout-btn" onclick="logout()">Logout</button>
+        <div id="notificationsPanel" class="notifications-panel"></div>
     </div>
 </div>
 
@@ -222,13 +291,17 @@
             <input type="text" id="loginUsername" placeholder="Username">
             <input type="password" id="loginPassword" placeholder="Password">
             <button onclick="login()">Login</button>
-            <span class="auth-toggle" onclick="toggleAuth('register')">Need an account? Register here.</span>
+                <span style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                    <span class="auth-toggle" onclick="toggleAuth('register')">Need an account? Register here.</span>
+                    <a href="#" style="font-size:13px;color:var(--primary-color);" onclick="openForgotModal(event)">Forgot Password?</a>
+                </span>
         </div>
 
         <div class="auth-card" id="registerForm" style="display: none;">
             <h2>Create Account</h2>
             
             <input type="text" id="regUsername" placeholder="Choose a Username (Unique ID)">
+            <input type="text" id="regEmail" placeholder="Email address">
             
             <div class="input-group">
                 <input type="password" id="regPassword" placeholder="Password" onkeyup="validatePasswordPolicy()">
@@ -293,7 +366,11 @@
         </div>
         
         <div class="filter-container">
-            <h3 style="margin: 0;">Public Feed</h3>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <h3 style="margin: 0;">Public Feed</h3>
+                <button id="myPostsBtn" class="nav-btn secondary" style="width:auto;" onclick="showMyPosts()">My Posts</button>
+                <button id="publicFeedBtn" class="nav-btn secondary" style="width:auto; display:none;" onclick="showPublicFeed()">Public Feed</button>
+            </div>
             <select id="postSort" onchange="renderTopics()">
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -338,25 +415,35 @@
 
 <script>
     // --- State Management ---
-    const API_BASE = 'http://localhost:8081/api/v1';
+    const API_BASE = 'http://localhost:8089/api/v1';
 
     let currentUser = null;
     let currentUserId = null;
+    let currentUserRole = localStorage.getItem('userRole') || null;
     let activeTopicId = null;
     let targetReportId = null; 
     let targetReportType = null; 
     let targetDeleteId = null; 
     let targetDeleteType = null; 
+    let targetBanUserId = null;
+    let currentFeedMode = 'public';
+    let unreadNotifications = [];
 
     let topics = [];
+    let usernamesById = {};
 
     async function apiRequest(path, options = {}) {
+        const { headers: customHeaders, ...requestOptions } = options;
+        const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
         const res = await fetch(`${API_BASE}${path}`, {
+            ...requestOptions,
             headers: {
                 'Content-Type': 'application/json',
-                ...(options.headers || {})
-            },
-            ...options
+                'X-User-Id': currentUserId || '',
+                'X-User-Role': localStorage.getItem('userRole') || 'USER',
+                ...(isAdmin && { 'X-Admin-Username': currentUser || localStorage.getItem('username') || 'admin' }),
+                ...(customHeaders || {})
+            }
         });
 
         if (!res.ok) {
@@ -365,34 +452,43 @@
         }
 
         if (res.status === 204) return null;
-        return res.json();
+
+        const text = await res.text();
+        if (!text || !text.trim()) return null;
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return text;
+        }
     }
 
     function mapBackendTopicToUi(t) {
         return {
             id: t.id,
-            author: t.createdBy === currentUserId ? currentUser : `user_${t.createdBy}`,
+            author: t.authorUsername || displayNameForUser(t.createdBy),
             content: t.title,
-            time: new Date(t.createdAt).toLocaleString(),
+            time: formatDateHK(t.createdAt),
             status: "CLEAN",
-            likes: 0,
-            dislikes: 0,
+            likes: t.likeCount || 0,
+            dislikes: t.dislikeCount || 0,
             fileUrl: null,
             fileType: null,
             fileName: null,
             userReactions: {},
             comments: [],
             commentCount: t.commentCount || 0,
-            createdBy: t.createdBy
+            createdBy: t.createdBy,
+            isDeleted: Boolean(t.isDeleted || t.is_deleted)
         };
     }
 
     function mapBackendCommentToUi(c) {
         return {
             id: c.id,
-            author: c.createdBy === currentUserId ? currentUser : `user_${c.createdBy}`,
+            author: c.authorUsername || displayNameForUser(c.createdBy),
             text: c.text,
-            time: new Date(c.createdAt).toLocaleString(),
+            time: formatDateHK(c.createdAt),
             status: "CLEAN",
             likes: 0,
             dislikes: 0,
@@ -405,17 +501,56 @@
     }
 
     async function loadTopicsFromBackend() {
-        const page = await apiRequest('/topics?page=0&size=50');
-        topics = (page.content || []).map(mapBackendTopicToUi);
+        await loadUserDirectory();
+        const endpoint = currentFeedMode === 'mine' ? '/topics/my-posts?page=0&size=50' : '/topics?page=0&size=50';
+        const page = await apiRequest(endpoint);
+        topics = (page.content || []).filter(topic => !(topic.isDeleted || topic.is_deleted)).map(mapBackendTopicToUi);
     }
 
     async function loadCommentsForTopic(topicId) {
         const topic = topics.find(t => t.id === topicId);
         if (!topic) return;
 
+        await loadUserDirectory();
         const page = await apiRequest(`/topics/${topicId}/comments?page=0&size=100`);
         topic.comments = (page.content || []).map(mapBackendCommentToUi);
         topic.commentCount = page.totalElements || topic.comments.length;
+    }
+
+    async function loadUserDirectory() {
+        if (localStorage.getItem('userRole') !== 'ADMIN') return;
+        try {
+            const users = await apiRequest('/admin/users', {
+                headers: {
+                    'X-User-Role': 'ADMIN',
+                    'X-Admin-Username': currentUser || localStorage.getItem('username') || 'admin'
+                }
+            });
+            usernamesById = {};
+            (Array.isArray(users) ? users : []).forEach(user => {
+                usernamesById[String(user.id)] = user.username;
+            });
+        } catch (e) {
+            // Keep the feed usable if the admin user directory is unavailable.
+        }
+    }
+
+    function displayNameForUser(userId) {
+        if (String(userId) === String(currentUserId)) return currentUser;
+        return usernamesById[String(userId)] || 'Unknown user';
+    }
+
+    function formatDateHK(dateString) {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('en-HK', {
+            timeZone: 'Asia/Hong_Kong',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
     }
 
     // --- Custom Toast Notification System ---
@@ -518,11 +653,13 @@
         if (!otp) return showToast("Please enter the OTP.");
         if (!termsChecked) return showToast("You must agree to the Terms of Use.");
 
+        const email = document.getElementById('regEmail').value;
         try {
             await apiRequest('/auth/register', {
                 method: 'POST',
                 body: JSON.stringify({
                     username,
+                    email,
                     password: pw,
                     otp,
                     termsAccepted: termsChecked
@@ -532,6 +669,7 @@
             showToast("Registration successful! You may now log in.", "success");
 
             document.getElementById('regUsername').value = '';
+            document.getElementById('regEmail').value = '';
             document.getElementById('regPassword').value = '';
             document.getElementById('regConfirmPassword').value = '';
             document.getElementById('regOtp').value = '';
@@ -558,12 +696,16 @@
 
             currentUser = result.username;
             currentUserId = result.userId;
+            currentUserRole = result.role;
+            localStorage.setItem('userRole', result.role);
             document.getElementById('welcomeMsg').innerText = "Logged in as: " + currentUser;
             document.getElementById('navUserInfo').style.display = "flex";
+            updateNavControls();
             showToast("Login successful!", "success");
             switchPage('listPage');
             await loadTopicsFromBackend();
             renderTopics();
+            await loadNotifications();
         } catch (e) {
             showToast("Login failed: " + e.message);
         }
@@ -572,17 +714,115 @@
     function logout() {
         currentUser = null;
         currentUserId = null;
+        currentUserRole = null;
+        unreadNotifications = [];
+        currentFeedMode = 'public';
         document.getElementById('navUserInfo').style.display = "none";
         document.getElementById('loginUsername').value = '';
         document.getElementById('loginPassword').value = '';
         showToast("Logged out successfully.", "success");
         switchPage('authPage');
+        updateNavControls();
+        closeNotificationsPanel();
     }
 
     async function goHome() { 
         switchPage('listPage'); 
         await loadTopicsFromBackend();
         renderTopics(); 
+    }
+
+    function updateNavControls() {
+        const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+        document.getElementById('adminDashboardBtn').style.display = isAdmin ? 'inline-block' : 'none';
+        document.getElementById('notificationsBtn').style.display = currentUser ? 'inline-block' : 'none';
+        document.getElementById('myPostsBtn').style.display = currentUser ? 'inline-block' : 'none';
+        document.getElementById('publicFeedBtn').style.display = currentFeedMode === 'mine' ? 'inline-block' : 'none';
+    }
+
+    function showMyPosts() {
+        currentFeedMode = 'mine';
+        updateNavControls();
+        loadTopicsFromBackend().then(() => renderTopics());
+    }
+
+    function showPublicFeed() {
+        currentFeedMode = 'public';
+        updateNavControls();
+        loadTopicsFromBackend().then(() => renderTopics());
+    }
+
+    function toggleNotificationsPanel() {
+        const panel = document.getElementById('notificationsPanel');
+        const opening = !panel.classList.contains('active');
+        panel.classList.toggle('active');
+        if (opening) {
+            loadNotifications();
+        }
+    }
+
+    function closeNotificationsPanel() {
+        document.getElementById('notificationsPanel').classList.remove('active');
+    }
+
+    async function loadNotifications() {
+        if (!currentUserId) return;
+        try {
+            unreadNotifications = await apiRequest('/admin/notifications/unread', {
+                headers: {
+                    'X-User-Id': currentUserId,
+                    'X-User-Role': currentUserRole || localStorage.getItem('userRole') || 'USER'
+                }
+            });
+            renderNotifications();
+        } catch (e) {
+            unreadNotifications = [];
+            renderNotifications();
+        }
+    }
+
+    function renderNotifications() {
+        const panel = document.getElementById('notificationsPanel');
+        const count = unreadNotifications.length;
+        const badge = document.getElementById('notificationCount');
+        if (count > 0) {
+            badge.style.display = 'inline-block';
+            badge.textContent = String(count);
+        } else {
+            badge.style.display = 'none';
+        }
+
+        if (count === 0) {
+            panel.innerHTML = '<div class="notifications-header">Unread Notifications</div><div class="notification-item">No unread notifications.</div>';
+            return;
+        }
+
+        panel.innerHTML = `
+            <div class="notifications-header">Unread Notifications</div>
+            ${unreadNotifications.map(notification => `
+                <div class="notification-item" onclick="markNotificationRead(${notification.id})">
+                    <div>${notification.message}</div>
+                    <div class="notification-meta">${formatDateHK(notification.created_at)}</div>
+                </div>
+            `).join('')}
+        `;
+    }
+
+    async function markNotificationRead(notificationId) {
+        try {
+            await apiRequest(`/admin/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'X-User-Id': currentUserId,
+                    'X-User-Role': currentUserRole || localStorage.getItem('userRole') || 'USER'
+                }
+            });
+            unreadNotifications = unreadNotifications.filter(notification => notification.id !== notificationId);
+            renderNotifications();
+            await loadNotifications();
+        } catch (e) {
+            showToast('Failed to mark notification read: ' + e.message, 'warning');
+        }
     }
 
     async function openTopic(id) {
@@ -708,7 +948,7 @@
     function openDeleteModal(id, type, event) {
         if(event) event.stopPropagation();
         targetDeleteId = id;
-        targetDeleteType = type;
+        targetDeleteType = normalizeAdminContentType(type);
         
         document.getElementById('deleteModalTitle').innerText = `Delete ${type === 'post' ? 'Post' : 'Comment'}`;
         document.getElementById('deleteModal').style.display = 'flex';
@@ -723,9 +963,21 @@
     async function confirmDelete() {
         if(!targetDeleteId) return;
         
-        if (targetDeleteType === 'post') {
+        const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+        
+        if (targetDeleteType === 'topic') {
             try {
-                await apiRequest(`/topics/${targetDeleteId}`, { method: 'DELETE' });
+                const url = isAdmin 
+                    ? `/admin/content/topic/${targetDeleteId}`
+                    : `/topics/${targetDeleteId}`;
+                const headers = isAdmin 
+                    ? { 'X-User-Role': 'ADMIN' } 
+                    : {};
+                    
+                await apiRequest(url, { 
+                    method: 'DELETE',
+                    headers: headers
+                });
                 topics = topics.filter(t => t.id !== targetDeleteId);
                 showToast("Post deleted successfully.", "success");
 
@@ -741,7 +993,17 @@
             const topic = topics.find(t => t.id === activeTopicId);
             if(topic) {
                 try {
-                    await apiRequest(`/topics/${activeTopicId}/comments/${targetDeleteId}`, { method: 'DELETE' });
+                    const url = isAdmin 
+                        ? `/admin/content/comment/${targetDeleteId}`
+                        : `/topics/${activeTopicId}/comments/${targetDeleteId}`;
+                    const headers = isAdmin 
+                        ? { 'X-User-Role': 'ADMIN' } 
+                        : {};
+                        
+                    await apiRequest(url, { 
+                        method: 'DELETE',
+                        headers: headers
+                    });
                     topic.comments = topic.comments.filter(c => c.id !== targetDeleteId);
                     topic.commentCount = Math.max(0, (topic.commentCount || 0) - 1);
                     showToast("Comment deleted successfully.", "success");
@@ -798,11 +1060,59 @@
     }
 
     function generateActionButtonsHtml(itemId, authorId, type) {
-        if (authorId === currentUser) {
+        const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+        const isAuthor = String(authorId) === String(currentUserId);
+        if (isAdmin) {
+            return `
+                <button class="reaction-btn action-delete" onclick="openDeleteModal(${itemId}, '${type}', event)">Delete Content</button>
+                <button class="reaction-btn action-report" onclick="banUserFromFeed(${authorId}, event)">Ban User</button>
+            `;
+        }
+        if (isAuthor) {
             return `<button class="reaction-btn action-delete" onclick="openDeleteModal(${itemId}, '${type}', event)">Delete</button>`;
         } else {
             return `<button class="reaction-btn action-report" onclick="openReportModal(${itemId}, '${type}', event)">Report</button>`;
         }
+    }
+
+    function banUserFromFeed(authorId, event) {
+        if (event) event.stopPropagation();
+        if (!authorId || Number.isNaN(Number(authorId))) {
+            showToast('Cannot ban user: invalid user id.', 'warning');
+            return;
+        }
+        targetBanUserId = authorId;
+        document.getElementById('banModalMessage').textContent = `Ban ${displayNameForUser(authorId)}? This user will be unable to post or comment.`;
+        document.getElementById('banModal').style.display = 'flex';
+    }
+
+    function closeBanModal() {
+        document.getElementById('banModal').style.display = 'none';
+        targetBanUserId = null;
+    }
+
+    async function confirmBanUser() {
+        if (!targetBanUserId) return;
+        try {
+            await apiRequest(`/admin/users/${targetBanUserId}/ban`, {
+                method: 'POST',
+                headers: {
+                    'X-User-Role': 'ADMIN',
+                    'X-Admin-Username': currentUser || localStorage.getItem('username') || 'admin'
+                }
+            });
+            showToast('User banned successfully', 'success');
+            closeBanModal();
+        } catch (e) {
+            showToast('Failed to ban user: ' + e.message, 'warning');
+        }
+    }
+
+    function normalizeAdminContentType(type) {
+        const normalized = String(type || '').toLowerCase();
+        if (normalized === 'post' || normalized === 'topic') return 'topic';
+        if (normalized === 'comment') return 'comment';
+        return normalized;
     }
 
     // --- Post Management ---
@@ -950,7 +1260,7 @@
                     <button class="reaction-btn ${likeClass}" onclick="togglePostReaction(${t.id}, 'like', event)">👍 Like (${t.likes})</button>
                     <button class="reaction-btn ${dislikeClass}" onclick="togglePostReaction(${t.id}, 'dislike', event)">👎 Dislike (${t.dislikes})</button>
                     <span style="font-size: 13px; color: #64748b; margin-left: 10px;">Comments: ${t.commentCount || t.comments.length}</span>
-                    ${generateActionButtonsHtml(t.id, t.author, 'post')}
+                    ${generateActionButtonsHtml(t.id, t.createdBy, 'post')}
                 </div>
             `;
             el.onclick = async () => { await openTopic(t.id); };
@@ -996,7 +1306,7 @@
                 <div class="reaction-container">
                     <button class="reaction-btn ${likeClass}" onclick="togglePostReaction(${t.id}, 'like')">👍 Like (${t.likes})</button>
                     <button class="reaction-btn ${dislikeClass}" onclick="togglePostReaction(${t.id}, 'dislike')">👎 Dislike (${t.dislikes})</button>
-                    ${generateActionButtonsHtml(t.id, t.author, 'post')}
+                    ${generateActionButtonsHtml(t.id, t.createdBy, 'post')}
                 </div>
             </div>
         `;
@@ -1077,11 +1387,64 @@
                 <div class="reaction-container" style="border: none; padding-top: 0; margin-top: 10px;">
                     <button class="reaction-btn ${likeClass}" onclick="toggleCommentReaction(${topic.id}, ${c.id}, 'like')">👍 Like (${c.likes})</button>
                     <button class="reaction-btn ${dislikeClass}" onclick="toggleCommentReaction(${topic.id}, ${c.id}, 'dislike')">👎 Dislike (${c.dislikes})</button>
-                    ${generateActionButtonsHtml(c.id, c.author, 'comment')}
+                    ${generateActionButtonsHtml(c.id, c.createdBy, 'comment')}
                 </div>
             `;
             container.appendChild(el);
         });
+    }
+
+    // --- Forgot / Reset Password Flow ---
+    function openForgotModal(event) {
+        if (event) event.preventDefault();
+        document.getElementById('forgotEmail').value = '';
+        document.getElementById('forgotModal').style.display = 'flex';
+    }
+
+    function closeForgotModal() {
+        document.getElementById('forgotModal').style.display = 'none';
+    }
+
+    async function submitForgot() {
+        const email = document.getElementById('forgotEmail').value;
+        if (!email) return showToast('Please enter your email.', 'warning');
+        try {
+            const res = await apiRequest('/auth/forgot-password', {
+                method: 'POST',
+                body: JSON.stringify({ username: email })
+            });
+            showToast('OTP sent to your email (demo OTP: ' + (res.otp || 'hidden') + ')', 'success');
+            closeForgotModal();
+            // prefill reset modal email
+            document.getElementById('resetEmail').value = email;
+            document.getElementById('resetOtp').value = '';
+            document.getElementById('resetNewPassword').value = '';
+            document.getElementById('resetModal').style.display = 'flex';
+        } catch (e) {
+            showToast('Failed to request OTP: ' + e.message, 'error');
+        }
+    }
+
+    function closeResetModal() {
+        document.getElementById('resetModal').style.display = 'none';
+    }
+
+    async function submitReset() {
+        const email = document.getElementById('resetEmail').value;
+        const otp = document.getElementById('resetOtp').value;
+        const newPassword = document.getElementById('resetNewPassword').value;
+        if (!email || !otp || !newPassword) return showToast('Email, OTP and new password are required.', 'warning');
+        try {
+            await apiRequest('/auth/reset-password', {
+                method: 'POST',
+                body: JSON.stringify({ email, otp, newPassword })
+            });
+            showToast('Password reset successful. You may now login.', 'success');
+            closeResetModal();
+            toggleAuth('login');
+        } catch (e) {
+            showToast('Failed to reset password: ' + e.message, 'error');
+        }
     }
 </script>
 

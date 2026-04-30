@@ -10,6 +10,8 @@ public interface CommentRepository {
 
     List<Comment> findByTopicPage(long topicId, int page, int size);
 
+    List<Comment> findByUserId(Long userId);
+
     boolean existsById(long commentId);
 
     long countByTopicId(long topicId);

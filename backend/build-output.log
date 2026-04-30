@@ -1,0 +1,295 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] shareU Backend                                                     [pom]
+[INFO] Common Shared                                                      [jar]
+[INFO] Auth Service                                                       [jar]
+[INFO] Topic Service                                                      [jar]
+[INFO] Comment Service                                                    [jar]
+[INFO] Reaction Service                                                   [jar]
+[INFO] Report Service                                                     [jar]
+[INFO] Admin Service                                                      [jar]
+[INFO] UI Service                                                         [jar]
+[INFO] 
+[INFO] -------------------------< com.shareu:backend >-------------------------
+[INFO] Building shareU Backend 0.0.1-SNAPSHOT                             [1/9]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ backend ---
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ backend ---
+[INFO] 
+[INFO] ----------------------< com.shareu:common-shared >----------------------
+[INFO] Building Common Shared 0.0.1-SNAPSHOT                              [2/9]
+[INFO]   from common-shared\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ common-shared ---
+[INFO] Deleting E:\poly\sem4\Cloud\Comp4442-group-project\backend\common-shared\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ common-shared ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\common-shared\src\main\resources
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\common-shared\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ common-shared ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 5 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ common-shared ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\common-shared\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ common-shared ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ common-shared ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ common-shared ---
+[INFO] Building jar: E:\poly\sem4\Cloud\Comp4442-group-project\backend\common-shared\target\common-shared-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ common-shared ---
+[INFO] 
+[INFO] ----------------------< com.shareu:auth-service >-----------------------
+[INFO] Building Auth Service 0.0.1-SNAPSHOT                               [3/9]
+[INFO]   from auth-service\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ auth-service ---
+[INFO] Deleting E:\poly\sem4\Cloud\Comp4442-group-project\backend\auth-service\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ auth-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ auth-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 11 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ auth-service ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\auth-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ auth-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ auth-service ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ auth-service ---
+[INFO] Building jar: E:\poly\sem4\Cloud\Comp4442-group-project\backend\auth-service\target\auth-service-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ auth-service ---
+[INFO] Replacing main artifact E:\poly\sem4\Cloud\Comp4442-group-project\backend\auth-service\target\auth-service-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to E:\poly\sem4\Cloud\Comp4442-group-project\backend\auth-service\target\auth-service-0.0.1-SNAPSHOT.jar.original
+[INFO] 
+[INFO] ----------------------< com.shareu:topic-service >----------------------
+[INFO] Building Topic Service 0.0.1-SNAPSHOT                              [4/9]
+[INFO]   from topic-service\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ topic-service ---
+[INFO] Deleting E:\poly\sem4\Cloud\Comp4442-group-project\backend\topic-service\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ topic-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ topic-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 8 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ topic-service ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\topic-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ topic-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ topic-service ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ topic-service ---
+[INFO] Building jar: E:\poly\sem4\Cloud\Comp4442-group-project\backend\topic-service\target\topic-service-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ topic-service ---
+[INFO] Replacing main artifact E:\poly\sem4\Cloud\Comp4442-group-project\backend\topic-service\target\topic-service-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to E:\poly\sem4\Cloud\Comp4442-group-project\backend\topic-service\target\topic-service-0.0.1-SNAPSHOT.jar.original
+[INFO] 
+[INFO] ---------------------< com.shareu:comment-service >---------------------
+[INFO] Building Comment Service 0.0.1-SNAPSHOT                            [5/9]
+[INFO]   from comment-service\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ comment-service ---
+[INFO] Deleting E:\poly\sem4\Cloud\Comp4442-group-project\backend\comment-service\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ comment-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ comment-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 8 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ comment-service ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\comment-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ comment-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ comment-service ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ comment-service ---
+[INFO] Building jar: E:\poly\sem4\Cloud\Comp4442-group-project\backend\comment-service\target\comment-service-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ comment-service ---
+[INFO] Replacing main artifact E:\poly\sem4\Cloud\Comp4442-group-project\backend\comment-service\target\comment-service-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to E:\poly\sem4\Cloud\Comp4442-group-project\backend\comment-service\target\comment-service-0.0.1-SNAPSHOT.jar.original
+[INFO] 
+[INFO] --------------------< com.shareu:reaction-service >---------------------
+[INFO] Building Reaction Service 0.0.1-SNAPSHOT                           [6/9]
+[INFO]   from reaction-service\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ reaction-service ---
+[INFO] Deleting E:\poly\sem4\Cloud\Comp4442-group-project\backend\reaction-service\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ reaction-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ reaction-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 5 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ reaction-service ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\reaction-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ reaction-service ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ reaction-service ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ reaction-service ---
+[INFO] Building jar: E:\poly\sem4\Cloud\Comp4442-group-project\backend\reaction-service\target\reaction-service-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ reaction-service ---
+[INFO] Replacing main artifact E:\poly\sem4\Cloud\Comp4442-group-project\backend\reaction-service\target\reaction-service-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to E:\poly\sem4\Cloud\Comp4442-group-project\backend\reaction-service\target\reaction-service-0.0.1-SNAPSHOT.jar.original
+[INFO] 
+[INFO] ---------------------< com.shareu:report-service >----------------------
+[INFO] Building Report Service 0.0.1-SNAPSHOT                             [7/9]
+[INFO]   from report-service\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ report-service ---
+[INFO] Deleting E:\poly\sem4\Cloud\Comp4442-group-project\backend\report-service\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ report-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ report-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 6 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ report-service ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\report-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ report-service ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ report-service ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ report-service ---
+[INFO] Building jar: E:\poly\sem4\Cloud\Comp4442-group-project\backend\report-service\target\report-service-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ report-service ---
+[INFO] Replacing main artifact E:\poly\sem4\Cloud\Comp4442-group-project\backend\report-service\target\report-service-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to E:\poly\sem4\Cloud\Comp4442-group-project\backend\report-service\target\report-service-0.0.1-SNAPSHOT.jar.original
+[INFO] 
+[INFO] ----------------------< com.shareu:admin-service >----------------------
+[INFO] Building Admin Service 0.0.1-SNAPSHOT                              [8/9]
+[INFO]   from admin-service\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ admin-service ---
+[INFO] Deleting E:\poly\sem4\Cloud\Comp4442-group-project\backend\admin-service\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ admin-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ admin-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 3 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ admin-service ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\admin-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ admin-service ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ admin-service ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ admin-service ---
+[INFO] Building jar: E:\poly\sem4\Cloud\Comp4442-group-project\backend\admin-service\target\admin-service-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ admin-service ---
+[INFO] Replacing main artifact E:\poly\sem4\Cloud\Comp4442-group-project\backend\admin-service\target\admin-service-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to E:\poly\sem4\Cloud\Comp4442-group-project\backend\admin-service\target\admin-service-0.0.1-SNAPSHOT.jar.original
+[INFO] 
+[INFO] -----------------------< com.shareu:ui-service >------------------------
+[INFO] Building UI Service 0.0.1-SNAPSHOT                                 [9/9]
+[INFO]   from ui-service\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ ui-service ---
+[INFO] Deleting E:\poly\sem4\Cloud\Comp4442-group-project\backend\ui-service\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ui-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ ui-service ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 1 source file with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ui-service ---
+[INFO] skip non existing resourceDirectory E:\poly\sem4\Cloud\Comp4442-group-project\backend\ui-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ ui-service ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 1 source file with javac [debug release 17] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ ui-service ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.3.0:jar (default-jar) @ ui-service ---
+[INFO] Building jar: E:\poly\sem4\Cloud\Comp4442-group-project\backend\ui-service\target\ui-service-0.0.1-SNAPSHOT.jar
+[INFO] 
+[INFO] --- spring-boot:3.2.5:repackage (repackage) @ ui-service ---
+[INFO] Replacing main artifact E:\poly\sem4\Cloud\Comp4442-group-project\backend\ui-service\target\ui-service-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to E:\poly\sem4\Cloud\Comp4442-group-project\backend\ui-service\target\ui-service-0.0.1-SNAPSHOT.jar.original
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for shareU Backend 0.0.1-SNAPSHOT:
+[INFO] 
+[INFO] shareU Backend ..................................... SUCCESS [  0.583 s]
+[INFO] Common Shared ...................................... SUCCESS [  1.429 s]
+[INFO] Auth Service ....................................... SUCCESS [  0.982 s]
+[INFO] Topic Service ...................................... SUCCESS [  0.685 s]
+[INFO] Comment Service .................................... SUCCESS [  0.567 s]
+[INFO] Reaction Service ................................... SUCCESS [  0.450 s]
+[INFO] Report Service ..................................... SUCCESS [  0.473 s]
+[INFO] Admin Service ...................................... SUCCESS [  0.477 s]
+[INFO] UI Service ......................................... SUCCESS [  1.034 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.987 s
+[INFO] Finished at: 2026-04-30T00:26:27+08:00
+[INFO] ------------------------------------------------------------------------

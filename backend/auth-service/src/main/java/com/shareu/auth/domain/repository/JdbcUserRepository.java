@@ -40,15 +40,15 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     @Override
-    public long create(String username, String displayName, String password) {
+    public long create(String username, String password) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO users (username, display_name, password) VALUES (?, ?, ?)",
+                "INSERT INTO users (username, display_name, password) VALUES (?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, username);
-            ps.setString(2, displayName);
+            ps.setString(2, username);
             ps.setString(3, password);
             return ps;
         }, keyHolder);
@@ -63,14 +63,30 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public Optional<UserAuthRecord> findAuthByUsername(String username) {
         List<UserAuthRecord> rows = jdbcTemplate.query(
-                "SELECT id, username, password FROM users WHERE username = ?",
+            "SELECT id, username, password, role, COALESCE(is_banned, FALSE) AS is_banned FROM users WHERE username = ?",
                 (rs, rowNum) -> new UserAuthRecord(
                         rs.getLong("id"),
                         rs.getString("username"),
-                        rs.getString("password")
+                rs.getString("password"),
+                rs.getString("role"),
+                rs.getBoolean("is_banned")
                 ),
                 username
         );
         return rows.stream().findFirst();
+    }
+
+    @Override
+    public int updatePassword(String username, String newPassword) {
+        // Try update by username first
+        int updated = jdbcTemplate.update("UPDATE users SET password = ? WHERE username = ?", newPassword, username);
+        if (updated == 0) {
+            // fallback: try updating by email column if exists
+            try {
+                updated = jdbcTemplate.update("UPDATE users SET password = ? WHERE email = ?", newPassword, username);
+            } catch (Exception ignored) {
+            }
+        }
+        return updated;
     }
 }

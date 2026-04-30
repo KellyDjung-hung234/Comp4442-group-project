@@ -2,6 +2,8 @@ package com.shareu.comment.domain.repository;
 
 import com.shareu.comment.domain.model.Comment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -19,14 +21,20 @@ public class JdbcCommentRepository implements CommentRepository {
             rs.getLong("topic_id"),
             rs.getString("text_content"),
             rs.getLong("created_by"),
+            rs.getString("author_username"),
             rs.getTimestamp("created_at").toInstant(),
             rs.getTimestamp("updated_at").toInstant()
     );
 
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private static final String COMMENT_SELECT =
+            "SELECT c.id, c.topic_id, c.text_content, c.created_by, COALESCE(u.username, CONCAT('User #', c.created_by)) AS author_username, " +
+                    "c.created_at, c.updated_at FROM comments c LEFT JOIN users u ON u.id = c.created_by ";
 
-    public JdbcCommentRepository(JdbcTemplate jdbcTemplate) {
+    public JdbcCommentRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
     @Override
@@ -49,7 +57,7 @@ public class JdbcCommentRepository implements CommentRepository {
         }
 
         List<Comment> rows = jdbcTemplate.query(
-                "SELECT id, topic_id, text_content, created_by, created_at, updated_at FROM comments WHERE id = ?",
+                COMMENT_SELECT + "WHERE c.id = ? AND c.is_deleted = FALSE",
                 COMMENT_ROW_MAPPER,
                 key.longValue()
         );
@@ -63,7 +71,7 @@ public class JdbcCommentRepository implements CommentRepository {
     public List<Comment> findByTopicPage(long topicId, int page, int size) {
         int offset = page * size;
         return jdbcTemplate.query(
-                "SELECT id, topic_id, text_content, created_by, created_at, updated_at FROM comments WHERE topic_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                COMMENT_SELECT + "WHERE c.topic_id = ? AND c.is_deleted = FALSE ORDER BY c.created_at DESC LIMIT ? OFFSET ?",
                 COMMENT_ROW_MAPPER,
                 topicId,
                 size,
@@ -72,9 +80,18 @@ public class JdbcCommentRepository implements CommentRepository {
     }
 
     @Override
+    public List<Comment> findByUserId(Long userId) {
+        return namedParameterJdbcTemplate.query(
+                COMMENT_SELECT + "WHERE c.created_by = :userId AND c.is_deleted = FALSE ORDER BY c.created_at DESC",
+                new MapSqlParameterSource("userId", userId),
+                COMMENT_ROW_MAPPER
+        );
+    }
+
+    @Override
     public boolean existsById(long commentId) {
         Long count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM comments WHERE id = ?",
+                "SELECT COUNT(*) FROM comments WHERE id = ? AND is_deleted = FALSE",
                 Long.class,
                 commentId
         );
@@ -84,7 +101,7 @@ public class JdbcCommentRepository implements CommentRepository {
     @Override
     public long countByTopicId(long topicId) {
         Long count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM comments WHERE topic_id = ?",
+                "SELECT COUNT(*) FROM comments WHERE topic_id = ? AND is_deleted = FALSE",
                 Long.class,
                 topicId
         );
@@ -93,7 +110,10 @@ public class JdbcCommentRepository implements CommentRepository {
 
     @Override
     public boolean deleteById(long commentId) {
-        int affected = jdbcTemplate.update("DELETE FROM comments WHERE id = ?", commentId);
+        int affected = jdbcTemplate.update(
+                "UPDATE comments SET is_deleted = TRUE, deleted_at = NOW() WHERE id = ? AND is_deleted = FALSE",
+                commentId
+        );
         return affected > 0;
     }
 }

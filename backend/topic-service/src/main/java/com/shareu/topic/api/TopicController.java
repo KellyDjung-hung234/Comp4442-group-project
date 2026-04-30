@@ -2,6 +2,7 @@ package com.shareu.topic.api;
 
 import com.shareu.topic.domain.model.Topic;
 import com.shareu.topic.dto.request.CreateTopicRequest;
+import com.shareu.topic.dto.request.UpdateReactionCountsRequest;
 import com.shareu.common.dto.PageResponse;
 import com.shareu.topic.dto.response.TopicResponse;
 import com.shareu.topic.service.TopicService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/topics")
-@CrossOrigin(origins = {"http://localhost:8080", "http://127.0.0.1:8080"})
+@CrossOrigin(origins = {"http://localhost:8089", "http://127.0.0.1:8089", "http://localhost:8080", "http://127.0.0.1:8080"})
 public class TopicController {
 
     private final TopicService topicService;
@@ -44,9 +46,36 @@ public class TopicController {
         return topicService.listTopics(page, size);
     }
 
+    @GetMapping("/user/{userId}")
+    public PageResponse<TopicResponse> getUserTopics(
+            @PathVariable long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        return topicService.listMyPosts(userId, page, size);
+    }
+
+    @GetMapping("/my-posts")
+    public PageResponse<TopicResponse> listMyPosts(
+            @RequestHeader("X-User-Id") long currentUserId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return topicService.listMyPosts(currentUserId, page, size);
+    }
+
     @GetMapping("/{topicId}")
     public TopicResponse getTopic(@PathVariable long topicId) {
         return topicService.getTopic(topicId);
+    }
+
+    @RequestMapping(path = "/{topicId}/reaction-counts", method = {RequestMethod.PATCH, RequestMethod.POST})
+    public ResponseEntity<Void> updateReactionCounts(
+            @PathVariable long topicId,
+            @Valid @RequestBody UpdateReactionCountsRequest request
+    ) {
+        topicService.updateReactionCounts(topicId, request.likeCount(), request.dislikeCount());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{topicId}")

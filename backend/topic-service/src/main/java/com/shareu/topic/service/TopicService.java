@@ -7,6 +7,7 @@ import com.shareu.topic.dto.response.TopicResponse;
 import com.shareu.common.dto.PageResponse;
 import com.shareu.common.exception.BadRequestException;
 import com.shareu.common.exception.NotFoundException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,14 +17,32 @@ import java.util.List;
 public class TopicService {
 
     private final TopicRepository topicRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public TopicService(TopicRepository topicRepository) {
+    public TopicService(TopicRepository topicRepository, JdbcTemplate jdbcTemplate) {
         this.topicRepository = topicRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Transactional
     public TopicResponse createTopic(CreateTopicRequest request) {
         String normalizedTitle = request.title().trim();
+
+        // Check if user is banned
+        Boolean isBanned = false;
+        try {
+            isBanned = jdbcTemplate.queryForObject(
+                    "SELECT COALESCE(is_banned, FALSE) FROM users WHERE id = ?",
+                    Boolean.class,
+                    request.createdBy()
+            );
+        } catch (Exception e) {
+            // User not found or other error, allow creation to proceed
+        }
+
+        if (isBanned) {
+            throw new BadRequestException("Your account is banned. You cannot post or comment.");
+        }
 
         Topic created = topicRepository.create(normalizedTitle, request.createdBy());
         return toResponse(created);
@@ -55,6 +74,19 @@ public class TopicService {
         return new PageResponse<>(content, page, size, totalElements);
     }
 
+    @Transactional(readOnly = true)
+    public PageResponse<TopicResponse> listMyPosts(long userId, int page, int size) {
+        validatePage(page, size);
+
+        List<TopicResponse> content = topicRepository.findByCreatedBy(userId, page, size)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        long totalElements = topicRepository.countByCreatedBy(userId);
+        return new PageResponse<>(content, page, size, totalElements);
+    }
+
     @Transactional
     public void deleteTopic(long topicId) {
         boolean deleted = topicRepository.deleteById(topicId);
@@ -77,9 +109,23 @@ public class TopicService {
                 topic.id(),
                 topic.title(),
                 topic.createdBy(),
+                topic.authorUsername(),
                 topic.commentCount(),
+                topic.likeCount(),
+                topic.dislikeCount(),
                 topic.createdAt(),
                 topic.updatedAt()
         );
+    }
+
+    @Transactional
+    public void updateReactionCounts(long topicId, long likeCount, long dislikeCount) {
+        if (likeCount < 0 || dislikeCount < 0) {
+            throw new BadRequestException("reaction counts must be >= 0");
+        }
+        if (!topicRepository.existsById(topicId)) {
+            throw new NotFoundException("Topic not found");
+        }
+        topicRepository.updateReactionCounts(topicId, likeCount, dislikeCount);
     }
 }

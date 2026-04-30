@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@CrossOrigin(origins = {"http://localhost:8080", "http://127.0.0.1:8080"})
+@CrossOrigin(origins = {"http://localhost:8089", "http://127.0.0.1:8089", "http://localhost:8080", "http://127.0.0.1:8080"})
 public class AuthController {
 
     private final AuthService authService;
@@ -32,6 +32,25 @@ public class AuthController {
     public Map<String, String> requestOtp(@Valid @RequestBody RequestOtpRequest request) {
         String otp = authService.requestOtp(request);
         return Map.of("message", "OTP issued", "otp", otp);
+    }
+
+    @PostMapping("/forgot-password")
+    public Map<String, String> forgotPassword(@Valid @RequestBody RequestOtpRequest request) {
+        String otp = authService.requestOtp(request);
+        return Map.of("message", "OTP sent for password reset", "otp", otp);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String otp = body.get("otp");
+        String newPassword = body.get("newPassword");
+        if (email == null || otp == null || newPassword == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "email, otp and newPassword are required"));
+        }
+
+        authService.resetPassword(email, otp, newPassword);
+        return ResponseEntity.ok(Map.of("message", "Password reset successful"));
     }
 
     @PostMapping("/register")

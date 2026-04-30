@@ -7,6 +7,7 @@ public record Comment(
         Long topicId,
         String text,
         Long createdBy,
+        String authorUsername,
         Instant createdAt,
         Instant updatedAt
 ) {
