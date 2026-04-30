@@ -1,0 +1,404 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shareu-config
+data:
+  RDS_ENDPOINT: "terraform-20260430133857399600000001.cn406mo0unpn.us-east-2.rds.amazonaws.com"
+  SHAREU_TOPIC_SERVICE_URL: "http://shareu-topic:8082/api/v1/topics"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: shareu-secrets
+type: Opaque
+stringData:
+  SPRING_DATASOURCE_USERNAME: "admin"
+  SPRING_DATASOURCE_PASSWORD: "ShareU_comp4443"
+  MAIL_USERNAME: "kellyhung234@gmail.com"
+  MAIL_PASSWORD: "gtjb xqta dvek yzyy"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareu-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareu-auth
+  template:
+    metadata:
+      labels:
+        app: shareu-auth
+    spec:
+      containers:
+        - name: auth-service
+          image: kellyhung234/shareu-auth:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx128m"
+            - name: RDS_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: shareu-config
+                  key: RDS_ENDPOINT
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://$(RDS_ENDPOINT):3306/shareudb?serverTimezone=Asia/Hong_Kong&useSSL=true&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: MAIL_USERNAME
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: MAIL_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareu-auth
+spec:
+  selector:
+    app: shareu-auth
+  ports:
+    - port: 8081
+      targetPort: 8081
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareu-topic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareu-topic
+  template:
+    metadata:
+      labels:
+        app: shareu-topic
+    spec:
+      containers:
+        - name: topic-service
+          image: kellyhung234/shareu-topic:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx128m"
+            - name: RDS_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: shareu-config
+                  key: RDS_ENDPOINT
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://$(RDS_ENDPOINT):3306/shareudb?serverTimezone=Asia/Hong_Kong&useSSL=true&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareu-topic
+spec:
+  selector:
+    app: shareu-topic
+  ports:
+    - port: 8082
+      targetPort: 8082
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareu-comment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareu-comment
+  template:
+    metadata:
+      labels:
+        app: shareu-comment
+    spec:
+      containers:
+        - name: comment-service
+          image: kellyhung234/shareu-comment:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx128m"
+            - name: RDS_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: shareu-config
+                  key: RDS_ENDPOINT
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://$(RDS_ENDPOINT):3306/shareudb?serverTimezone=Asia/Hong_Kong&useSSL=true&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareu-comment
+spec:
+  selector:
+    app: shareu-comment
+  ports:
+    - port: 8083
+      targetPort: 8083
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareu-reaction
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareu-reaction
+  template:
+    metadata:
+      labels:
+        app: shareu-reaction
+    spec:
+      containers:
+        - name: reaction-service
+          image: kellyhung234/shareu-reaction:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx128m"
+            - name: RDS_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: shareu-config
+                  key: RDS_ENDPOINT
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://$(RDS_ENDPOINT):3306/shareudb?serverTimezone=Asia/Hong_Kong&useSSL=true&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+            - name: SHAREU_TOPIC_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: shareu-config
+                  key: SHAREU_TOPIC_SERVICE_URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareu-reaction
+spec:
+  selector:
+    app: shareu-reaction
+  ports:
+    - port: 8084
+      targetPort: 8084
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareu-report
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareu-report
+  template:
+    metadata:
+      labels:
+        app: shareu-report
+    spec:
+      containers:
+        - name: report-service
+          image: kellyhung234/shareu-report:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8085
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx128m"
+            - name: RDS_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: shareu-config
+                  key: RDS_ENDPOINT
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://$(RDS_ENDPOINT):3306/shareudb?serverTimezone=Asia/Hong_Kong&useSSL=true&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareu-report
+spec:
+  selector:
+    app: shareu-report
+  ports:
+    - port: 8085
+      targetPort: 8085
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareu-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareu-admin
+  template:
+    metadata:
+      labels:
+        app: shareu-admin
+    spec:
+      containers:
+        - name: admin-service
+          image: kellyhung234/shareu-admin:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8086
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx128m"
+            - name: RDS_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: shareu-config
+                  key: RDS_ENDPOINT
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://$(RDS_ENDPOINT):3306/shareudb?serverTimezone=Asia/Hong_Kong&useSSL=true&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shareu-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareu-admin
+spec:
+  selector:
+    app: shareu-admin
+  ports:
+    - port: 8086
+      targetPort: 8086
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shareu-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shareu-ui
+  template:
+    metadata:
+      labels:
+        app: shareu-ui
+    spec:
+      containers:
+        - name: ui-service
+          image: kellyhung234/shareu-ui:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8089
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms64m -Xmx128m"
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_0_URI
+              value: "http://shareu-auth:8081"
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_1_URI
+              value: "http://shareu-comment:8083"
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_2_URI
+              value: "http://shareu-topic:8082"
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_3_URI
+              value: "http://shareu-reaction:8084"
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_4_URI
+              value: "http://shareu-report:8085"
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_5_URI
+              value: "http://shareu-admin:8086"
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_6_URI
+              value: "http://shareu-topic:8082"
+            - name: SPRING_CLOUD_GATEWAY_ROUTES_7_URI
+              value: "http://shareu-comment:8083"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shareu-ui
+spec:
+  selector:
+    app: shareu-ui
+  ports:
+    - port: 8089
+      targetPort: 8089
+      nodePort: 30080
+  type: NodePort

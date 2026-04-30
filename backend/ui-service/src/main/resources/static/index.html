@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1173,3 +1174,1457 @@
 
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>shareU</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
+        
+        /* Navbar */
+        .navbar { background: var(--card-bg); padding: 15px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-brand { font-size: 22px; font-weight: bold; color: var(--primary-color); letter-spacing: -0.5px; }
+        .nav-user { display: none; align-items: center; gap: 15px; }
+        .logout-btn { background: var(--error-color); padding: 6px 12px; font-size: 14px; }
+        .nav-btn { width: auto; padding: 8px 12px; font-size: 14px; }
+        .nav-btn.secondary { background: #64748b; }
+        .nav-btn.warning { background: #f59e0b; }
+
+        .nav-shell { position: relative; }
+        .notifications-panel {
+            display: none;
+            position: absolute;
+            top: 58px;
+            right: 20px;
+            width: 340px;
+            max-height: 360px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+            z-index: 2000;
+        }
+        .notifications-panel.active { display: block; }
+        .notifications-header { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: var(--text-main); }
+        .notification-item { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+        .notification-item:hover { background: #f8fafc; }
+        .notification-item:last-child { border-bottom: none; }
+        .notification-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .notification-badge { display: inline-block; min-width: 20px; padding: 2px 6px; border-radius: 999px; background: var(--error-color); color: white; font-size: 12px; text-align: center; }
+
+        .container { max-width: 700px; margin: auto; padding: 0 20px; }
+        
+        /* Toast Notifications */
+        .toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+        .toast { background: white; border-left: 4px solid var(--error-color); box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px 20px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; min-width: 250px; animation: slideIn 0.3s ease; font-size: 14px; font-weight: 500; }
+        .toast.success { border-left-color: var(--success-color); }
+        .toast.warning { border-left-color: var(--warning-color); }
+        .toast-close { cursor: pointer; color: #94a3b8; font-weight: bold; margin-left: 15px; transition: 0.2s; }
+        .toast-close:hover { color: #1e293b; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* Pages */
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Auth Card */
+        .auth-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 450px; margin: 50px auto; text-align: left; }
+        .auth-card h2 { text-align: center; margin-top: 0; }
+        .auth-toggle { color: var(--primary-color); cursor: pointer; font-size: 14px; margin-top: 20px; display: block; text-align: center; }
+        
+        .input-group { display: flex; gap: 10px; margin: 8px 0; align-items: center; }
+        .input-group input { margin: 0; flex-grow: 1; }
+        .toggle-btn, .otp-btn { background: #e2e8f0; color: #475569; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer; border: none; white-space: nowrap; }
+        .toggle-btn:hover, .otp-btn:hover { background: #cbd5e1; }
+
+        .password-policy { background: #f8fafc; padding: 15px; border-radius: 8px; font-size: 13px; margin: 10px 0; border: 1px solid #e2e8f0; }
+        .password-policy ul { margin: 0; padding-left: 20px; color: var(--text-muted); }
+        .password-policy li { margin-bottom: 5px; transition: 0.2s; }
+        .policy-met { color: var(--success-color); list-style-type: disc; }
+        
+        .terms-container { font-size: 13px; margin: 15px 0; display: flex; align-items: center; gap: 8px; }
+        .terms-container a { color: var(--primary-color); text-decoration: none; cursor: pointer; }
+
+        /* Forms & Inputs */
+        .form-box { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        input[type="text"], input[type="password"], textarea, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        button { background: var(--primary-color); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; width: 100%; }
+        button:hover { opacity: 0.9; }
+        .back-btn { background: #64748b; margin-bottom: 20px; width: auto; }
+
+        .terms-content { line-height: 1.6; color: var(--text-main); font-size: 14px; }
+        .terms-content h3 { color: var(--primary-color); margin-top: 25px; margin-bottom: 10px; font-size: 16px; }
+
+        .filter-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .filter-container select { width: auto; padding: 8px 12px; margin: 0; }
+
+        /* Posts & Comments */
+        .topic-card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .topic-card.clickable { cursor: pointer; }
+        .topic-card.clickable:hover { border-color: var(--primary-color); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .author-tag { font-size: 13px; color: white; background: var(--primary-color); padding: 3px 8px; border-radius: 12px; margin-right: 10px; }
+        .timestamp { font-size: 12px; color: var(--text-muted); display: inline-block; margin-top: 5px; }
+        .post-content { font-size: 16px; font-weight: 500; margin: 10px 0; line-height: 1.5; white-space: pre-wrap; }
+        
+        .comment-card { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--success-color); position: relative; }
+        .comment-text { margin: 10px 0; font-size: 14px; }
+
+        /* --- 🌟 Media Display in Feed & Comments (Uncropped & Full Visible) --- */
+        .media-preview-container { margin-top: 10px; display: none; }
+        
+        /* object-fit: contain makes sure the WHOLE image is visible without cropping */
+        .feed-image { 
+            width: 100%; 
+            max-height: 400px; /* Allows tall images to fit nicely without stretching the feed too much */
+            height: auto; 
+            object-fit: contain; /* The magic property to prevent cropping! */
+            border-radius: 8px; 
+            margin-top: 10px; 
+            cursor: zoom-in; 
+            background: #f8fafc; /* Subtle background for transparency */
+            border: 1px solid #f1f5f9;
+        }
+        
+        /* For comments, set a smaller max-height */
+        .comment-card .feed-image {
+            max-height: 250px;
+        }
+
+        .feed-video { 
+            width: 100%; 
+            max-height: 400px; 
+            background: #000;
+            border-radius: 8px; 
+            margin-top: 10px; 
+        }
+        
+        .generic-file { background: #f1f5f9; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 14px; color: var(--primary-color); border: 1px dashed #cbd5e1; display: inline-block; }
+        
+        /* --- 🌟 Advanced Interactive Image Modal (Pan & Zoom) --- */
+        .overlay-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; overflow: hidden; }
+        
+        .zoom-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab; 
+        }
+        .zoom-container:active { cursor: grabbing; }
+        
+        .image-modal-content { 
+            max-width: 90vw; 
+            max-height: 90vh; 
+            object-fit: contain; 
+            transition: transform 0.1s ease-out; 
+            transform-origin: center center;
+            pointer-events: none; 
+        }
+
+        .modal-close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; font-weight: bold; cursor: pointer; z-index: 1001; }
+        .modal-close-btn:hover { color: #cbd5e1; }
+        .modal-instruction { position: absolute; bottom: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.6); font-size: 14px; pointer-events: none; }
+        
+        /* Reaction & Action Buttons */
+        .reaction-container { margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .reaction-btn { background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid #e2e8f0; transition: 0.2s; width: auto; font-weight: normal; }
+        .reaction-btn:hover { background: #e2e8f0; }
+        .reaction-btn.active-like { background: #dbeafe; color: #2563eb; border-color: #bfdbfe; font-weight: bold; }
+        .reaction-btn.active-dislike { background: #fee2e2; color: #dc2626; border-color: #fecaca; font-weight: bold; }
+        
+        /* Delete & Report Styles */
+        .action-delete { background: #fee2e2; color: var(--error-color); border-color: #fecaca; margin-left: auto; }
+        .action-delete:hover { background: #fca5a5; }
+        .action-report { background: #fef3c7; color: #b45309; border-color: #fde68a; margin-left: auto; }
+        .action-report:hover { background: #fde68a; }
+
+        .status-badge { font-size: 11px; padding: 3px 6px; border-radius: 4px; color: white; margin-left: 10px; font-weight: bold; }
+        .status-scanning { background: var(--warning-color); }
+        .status-clean { background: var(--success-color); }
+
+        .missing-state { text-align: center; padding: 50px 20px; }
+        .missing-state h2 { color: var(--error-color); margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<div id="imageModal" class="overlay-modal">
+    <span class="modal-close-btn" onclick="closeImageModal()">×</span>
+    <div class="modal-instruction">Scroll to Zoom • Click & Drag to Pan</div>
+    <div id="zoomContainer" class="zoom-container">
+        <img id="modalImageSrc" class="image-modal-content" src="" alt="Enlarged view">
+    </div>
+</div>
+
+<div id="reportModal" class="overlay-modal" onclick="closeReportModal()">
+    <div class="auth-card" style="width: 350px; margin: 0; cursor: default;" onclick="event.stopPropagation()">
+        <h3 id="reportModalTitle" style="margin-top: 0; color: var(--error-color);">Report Content</h3>
+        <p style="font-size: 14px; color: var(--text-muted);">Please select a reason for reporting.</p>
+        
+        <select id="reportReason">
+            <option value="copyright">Copyright Infringement</option>
+            <option value="inappropriate">Inappropriate / NSFW Content</option>
+            <option value="other">Other Violation</option>
+        </select>
+        
+        <textarea id="reportDetails" placeholder="Provide additional details (optional)..." rows="3"></textarea>
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button style="background: var(--error-color);" onclick="submitReport()">Submit Report</button>
+            <button style="background: #64748b;" onclick="closeReportModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="forgotModal" class="overlay-modal" onclick="closeForgotModal()">
+    <div class="auth-card" style="width: 380px; margin: 0; cursor: default;" onclick="event.stopPropagation()">
+        <h3 style="margin-top: 0; color: var(--primary-color);">Forgot Password</h3>
+        <p style="font-size: 14px; color: var(--text-muted);">Enter your account email to receive an OTP for password reset.</p>
+        <input type="text" id="forgotEmail" placeholder="Email address">
+        <div style="display:flex;gap:10px;margin-top:12px;">
+            <button onclick="submitForgot()" style="flex:1;background:var(--primary-color);">Send OTP</button>
+            <button onclick="closeForgotModal()" style="flex:1;background:#64748b;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="resetModal" class="overlay-modal" onclick="closeResetModal()">
+    <div class="auth-card" style="width: 380px; margin: 0; cursor: default;" onclick="event.stopPropagation()">
+        <h3 style="margin-top: 0; color: var(--success-color);">Reset Password</h3>
+        <p style="font-size: 14px; color: var(--text-muted);">Enter the OTP you received and choose a new password.</p>
+        <input type="text" id="resetEmail" placeholder="Email address">
+        <input type="text" id="resetOtp" placeholder="OTP code" style="margin-top:8px;">
+        <input type="password" id="resetNewPassword" placeholder="New password" style="margin-top:8px;">
+        <div style="display:flex;gap:10px;margin-top:12px;">
+            <button onclick="submitReset()" style="flex:1;background:var(--success-color);">Reset</button>
+            <button onclick="closeResetModal()" style="flex:1;background:#64748b;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="overlay-modal" onclick="closeDeleteModal()">
+    <div class="auth-card" style="width: 350px; margin: 0; cursor: default; text-align: center; background: #fff;" onclick="event.stopPropagation()">
+        <h3 id="deleteModalTitle" style="margin-top: 0; color: var(--error-color);">Delete Content</h3>
+        <p style="font-size: 14px; color: var(--text-muted);">Are you sure you want to delete this content? It will be hidden from the feed.</p>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-danger" style="background: var(--error-color);" onclick="confirmDelete()">Yes, Delete</button>
+            <button class="btn btn-secondary" style="background: #64748b;" onclick="closeDeleteModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="banModal" class="overlay-modal" onclick="closeBanModal()">
+    <div class="auth-card" style="width: 350px; margin: 0; cursor: default; text-align: center; background: #fff;" onclick="event.stopPropagation()">
+        <h3 id="banModalTitle" style="margin-top: 0; color: var(--error-color);">Ban User</h3>
+        <p id="banModalMessage" style="font-size: 14px; color: var(--text-muted);">This user will be banned from posting and commenting. Continue?</p>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-danger" style="background: var(--error-color);" onclick="confirmBanUser()">Yes, Ban</button>
+            <button class="btn btn-secondary" style="background: #64748b;" onclick="closeBanModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="navbar">
+    <div class="nav-brand">shareU</div>
+    <div class="nav-user nav-shell" id="navUserInfo">
+        <span id="welcomeMsg"></span>
+        <button id="adminDashboardBtn" class="nav-btn secondary" style="display:none;" onclick="window.location.href='/admin.html'">Admin Dashboard</button>
+        <button id="notificationsBtn" class="nav-btn warning" style="display:none;" onclick="toggleNotificationsPanel()">
+            Notifications <span id="notificationCount" class="notification-badge" style="display:none;">0</span>
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div id="notificationsPanel" class="notifications-panel"></div>
+    </div>
+</div>
+
+<div class="container">
+    
+    <div id="authPage" class="page active">
+        
+        <div class="auth-card" id="loginForm">
+            <h2>Sign In</h2>
+            <input type="text" id="loginUsername" placeholder="Username">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button onclick="login()">Login</button>
+                <span style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                    <span class="auth-toggle" onclick="toggleAuth('register')">Need an account? Register here.</span>
+                    <a href="#" style="font-size:13px;color:var(--primary-color);" onclick="openForgotModal(event)">Forgot Password?</a>
+                </span>
+        </div>
+
+        <div class="auth-card" id="registerForm" style="display: none;">
+            <h2>Create Account</h2>
+            
+            <input type="text" id="regUsername" placeholder="Choose a Username (Unique ID)">
+            <input type="text" id="regEmail" placeholder="Email address">
+            
+            <div class="input-group">
+                <input type="password" id="regPassword" placeholder="Password" onkeyup="validatePasswordPolicy()">
+                <button type="button" class="toggle-btn" onclick="togglePasswordVisibility('regPassword', this)">Show</button>
+            </div>
+            
+            <div class="password-policy">
+                <strong>Password Policy:</strong>
+                <ul>
+                    <li id="ruleLength">At least 8 characters</li>
+                    <li id="ruleUpper">At least 1 uppercase letter</li>
+                    <li id="ruleLower">At least 1 lowercase letter</li>
+                    <li id="ruleNum">At least 1 number</li>
+                </ul>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="regConfirmPassword" placeholder="Confirm Password">
+                <button type="button" class="toggle-btn" onclick="togglePasswordVisibility('regConfirmPassword', this)">Show</button>
+            </div>
+
+            <div class="input-group" style="margin-top: 15px;">
+                <input type="text" id="regOtp" placeholder="Enter OTP Code">
+                <button type="button" class="otp-btn" id="otpBtn" onclick="requestOTP()">Get OTP</button>
+            </div>
+
+            <div class="terms-container">
+                <input type="checkbox" id="regTerms">
+                <label for="regTerms">I agree to the <a onclick="openTermsPage(event)">Terms of Use</a></label>
+            </div>
+
+            <button onclick="register()" style="background: var(--success-color);">Register</button>
+            <span class="auth-toggle" onclick="toggleAuth('login')">Already have an account? Login here.</span>
+        </div>
+    </div>
+
+    <div id="termsPage" class="page">
+        <button class="back-btn" onclick="backToRegistration()">Back to Registration</button>
+        <div class="form-box terms-content">
+            <h2 style="margin-top: 0; color: var(--text-main);">shareU Terms of Service</h2>
+            <p><strong>Effective Date:</strong> April 2026</p>
+            <p>Welcome to shareU. By accessing or using our platform, you agree to be bound by these Terms of Service.</p>
+            <h3>1. User Conduct and Content Policy</h3>
+            <p>You are solely responsible for all files, media, and text you upload. You agree not to upload content that is illegal, defamatory, harmful, or infringes on third-party intellectual property.</p>
+            <h3>2. Security and Virus Scanning</h3>
+            <p>To ensure platform safety, all uploaded files are subjected to an automated virus scanning process powered by asynchronous worker pods. Malicious files will be deleted.</p>
+            <h3>3. Data Privacy and Storage</h3>
+            <p>Your data is stored securely in our cloud infrastructure. shareU is provided "as is", and we are not liable for data loss. Do not upload sensitive personal information.</p>
+            <button onclick="acceptTerms()" style="background: var(--success-color); margin-top: 30px;">I Have Read and Accept These Terms</button>
+        </div>
+    </div>
+
+    <div id="listPage" class="page">
+        <div class="form-box">
+            <h3>Create a New Post</h3>
+            <textarea id="topicInput" placeholder="What's on your mind?"></textarea>
+            
+            <input type="file" id="mediaUpload" onchange="previewMedia('mediaUpload', 'mediaPreview')" style="margin-top: 10px;">
+            <div id="mediaPreview" class="media-preview-container"></div>
+            
+            <button onclick="addTopic()" style="margin-top: 10px;">Post to shareU</button>
+        </div>
+        
+        <div class="filter-container">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <h3 style="margin: 0;">Public Feed</h3>
+                <button id="myPostsBtn" class="nav-btn secondary" style="width:auto;" onclick="showMyPosts()">My Posts</button>
+                <button id="publicFeedBtn" class="nav-btn secondary" style="width:auto; display:none;" onclick="showPublicFeed()">Public Feed</button>
+            </div>
+            <select id="postSort" onchange="renderTopics()">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="most_likes">Most Likes</option>
+                <option value="most_dislikes">Most Dislikes</option>
+                <option value="most_comments">Most Comments</option>
+            </select>
+        </div>
+        
+        <div id="topicContainer"></div>
+    </div>
+
+    <div id="detailPage" class="page">
+        <button class="back-btn" onclick="goHome()">Back to Feed</button>
+        
+        <div id="originalPostContainer"></div>
+        
+        <div id="commentSectionWrapper">
+            <div class="form-box">
+                <textarea id="msgInput" placeholder="Write a comment..."></textarea>
+                
+                <input type="file" id="commentMediaUpload" onchange="previewMedia('commentMediaUpload', 'commentMediaPreview')" style="margin-top: 10px;">
+                <div id="commentMediaPreview" class="media-preview-container"></div>
+
+                <button onclick="addComment()" style="background: var(--success-color); margin-top: 10px;">Submit Comment</button>
+            </div>
+
+            <div class="filter-container">
+                <h3 style="margin: 0;">Comments</h3>
+                <select id="commentSort" onchange="renderComments()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="most_likes">Most Likes</option>
+                    <option value="most_dislikes">Most Dislikes</option>
+                </select>
+            </div>
+            <div id="commentContainer"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- State Management ---
+    const API_BASE = 'http://localhost:8089/api/v1';
+
+    let currentUser = null;
+    let currentUserId = null;
+    let currentUserRole = localStorage.getItem('userRole') || null;
+    let activeTopicId = null;
+    let targetReportId = null; 
+    let targetReportType = null; 
+    let targetDeleteId = null; 
+    let targetDeleteType = null; 
+    let targetBanUserId = null;
+    let currentFeedMode = 'public';
+    let unreadNotifications = [];
+
+    let topics = [];
+    let usernamesById = {};
+
+    async function apiRequest(path, options = {}) {
+        const { headers: customHeaders, ...requestOptions } = options;
+        const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+        const res = await fetch(`${API_BASE}${path}`, {
+            ...requestOptions,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': currentUserId || '',
+                'X-User-Role': localStorage.getItem('userRole') || 'USER',
+                ...(isAdmin && { 'X-Admin-Username': currentUser || localStorage.getItem('username') || 'admin' }),
+                ...(customHeaders || {})
+            }
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || `HTTP ${res.status}`);
+        }
+
+        if (res.status === 204) return null;
+
+        const text = await res.text();
+        if (!text || !text.trim()) return null;
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return text;
+        }
+    }
+
+    function mapBackendTopicToUi(t) {
+        return {
+            id: t.id,
+            author: t.authorUsername || displayNameForUser(t.createdBy),
+            content: t.title,
+            time: formatDateHK(t.createdAt),
+            status: "CLEAN",
+            likes: t.likeCount || 0,
+            dislikes: t.dislikeCount || 0,
+            fileUrl: null,
+            fileType: null,
+            fileName: null,
+            userReactions: {},
+            comments: [],
+            commentCount: t.commentCount || 0,
+            createdBy: t.createdBy,
+            isDeleted: Boolean(t.isDeleted || t.is_deleted)
+        };
+    }
+
+    function mapBackendCommentToUi(c) {
+        return {
+            id: c.id,
+            author: c.authorUsername || displayNameForUser(c.createdBy),
+            text: c.text,
+            time: formatDateHK(c.createdAt),
+            status: "CLEAN",
+            likes: 0,
+            dislikes: 0,
+            fileUrl: null,
+            fileType: null,
+            fileName: null,
+            userReactions: {},
+            createdBy: c.createdBy
+        };
+    }
+
+    async function loadTopicsFromBackend() {
+        await loadUserDirectory();
+        const endpoint = currentFeedMode === 'mine' ? '/topics/my-posts?page=0&size=50' : '/topics?page=0&size=50';
+        const page = await apiRequest(endpoint);
+        topics = (page.content || []).filter(topic => !(topic.isDeleted || topic.is_deleted)).map(mapBackendTopicToUi);
+    }
+
+    async function loadCommentsForTopic(topicId) {
+        const topic = topics.find(t => t.id === topicId);
+        if (!topic) return;
+
+        await loadUserDirectory();
+        const page = await apiRequest(`/topics/${topicId}/comments?page=0&size=100`);
+        topic.comments = (page.content || []).map(mapBackendCommentToUi);
+        topic.commentCount = page.totalElements || topic.comments.length;
+    }
+
+    async function loadUserDirectory() {
+        if (localStorage.getItem('userRole') !== 'ADMIN') return;
+        try {
+            const users = await apiRequest('/admin/users', {
+                headers: {
+                    'X-User-Role': 'ADMIN',
+                    'X-Admin-Username': currentUser || localStorage.getItem('username') || 'admin'
+                }
+            });
+            usernamesById = {};
+            (Array.isArray(users) ? users : []).forEach(user => {
+                usernamesById[String(user.id)] = user.username;
+            });
+        } catch (e) {
+            // Keep the feed usable if the admin user directory is unavailable.
+        }
+    }
+
+    function displayNameForUser(userId) {
+        if (String(userId) === String(currentUserId)) return currentUser;
+        return usernamesById[String(userId)] || 'Unknown user';
+    }
+
+    function formatDateHK(dateString) {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('en-HK', {
+            timeZone: 'Asia/Hong_Kong',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    }
+
+    // --- Custom Toast Notification System ---
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span>${message}</span> <span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // --- Authentication & Routing Guard ---
+    function switchPage(pageId) {
+        if ((pageId === 'listPage' || pageId === 'detailPage') && !currentUser) {
+            showToast("You must be logged in to view content.", "warning");
+            pageId = 'authPage';
+        }
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+    }
+
+    function toggleAuth(type) {
+        document.getElementById('loginForm').style.display = type === 'login' ? 'block' : 'none';
+        document.getElementById('registerForm').style.display = type === 'register' ? 'block' : 'none';
+    }
+
+    function togglePasswordVisibility(inputId, btnElement) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            btnElement.innerText = "Hide";
+        } else {
+            input.type = "password";
+            btnElement.innerText = "Show";
+        }
+    }
+
+    function validatePasswordPolicy() {
+        const pw = document.getElementById('regPassword').value;
+        const hasLength = pw.length >= 8;
+        const hasUpper = /[A-Z]/.test(pw);
+        const hasLower = /[a-z]/.test(pw);
+        const hasNum = /[0-9]/.test(pw);
+
+        document.getElementById('ruleLength').className = hasLength ? 'policy-met' : '';
+        document.getElementById('ruleUpper').className = hasUpper ? 'policy-met' : '';
+        document.getElementById('ruleLower').className = hasLower ? 'policy-met' : '';
+        document.getElementById('ruleNum').className = hasNum ? 'policy-met' : '';
+
+        return hasLength && hasUpper && hasLower && hasNum;
+    }
+
+    async function requestOTP() {
+        const username = document.getElementById('regUsername').value;
+        if (!username) return showToast("Please enter a username first to receive OTP.");
+        try {
+            const result = await apiRequest('/auth/request-otp', {
+                method: 'POST',
+                body: JSON.stringify({ username })
+            });
+            showToast(`OTP sent for ${username} (Demo OTP: ${result.otp})`, "success");
+            document.getElementById('otpBtn').innerText = "Resend OTP";
+        } catch (e) {
+            showToast("Failed to request OTP: " + e.message);
+        }
+    }
+
+    function openTermsPage(event) {
+        event.preventDefault();
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('termsPage').classList.add('active');
+    }
+
+    function backToRegistration() {
+        switchPage('authPage');
+        toggleAuth('register');
+    }
+
+    function acceptTerms() {
+        document.getElementById('regTerms').checked = true;
+        backToRegistration();
+        showToast("Terms of Use accepted.", "success");
+    }
+
+    async function register() {
+        const username = document.getElementById('regUsername').value;
+        const pw = document.getElementById('regPassword').value;
+        const pwConfirm = document.getElementById('regConfirmPassword').value;
+        const otp = document.getElementById('regOtp').value;
+        const termsChecked = document.getElementById('regTerms').checked;
+
+        if (!username) return showToast("Username is required.");
+        if (!validatePasswordPolicy()) return showToast("Password does not meet the security policy.");
+        if (pw !== pwConfirm) return showToast("Passwords do not match.");
+        if (!otp) return showToast("Please enter the OTP.");
+        if (!termsChecked) return showToast("You must agree to the Terms of Use.");
+
+        const email = document.getElementById('regEmail').value;
+        try {
+            await apiRequest('/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password: pw,
+                    otp,
+                    termsAccepted: termsChecked
+                })
+            });
+
+            showToast("Registration successful! You may now log in.", "success");
+
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regConfirmPassword').value = '';
+            document.getElementById('regOtp').value = '';
+            document.getElementById('regTerms').checked = false;
+            validatePasswordPolicy();
+
+            toggleAuth('login');
+        } catch (e) {
+            showToast("Registration failed: " + e.message);
+        }
+    }
+
+    async function login() {
+        const user = document.getElementById('loginUsername').value;
+        const pw = document.getElementById('loginPassword').value;
+        if(!user) return showToast("Please enter username!");
+        if(!pw) return showToast("Please enter password!");
+
+        try {
+            const result = await apiRequest('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ username: user, password: pw })
+            });
+
+            currentUser = result.username;
+            currentUserId = result.userId;
+            currentUserRole = result.role;
+            localStorage.setItem('userRole', result.role);
+            document.getElementById('welcomeMsg').innerText = "Logged in as: " + currentUser;
+            document.getElementById('navUserInfo').style.display = "flex";
+            updateNavControls();
+            showToast("Login successful!", "success");
+            switchPage('listPage');
+            await loadTopicsFromBackend();
+            renderTopics();
+            await loadNotifications();
+        } catch (e) {
+            showToast("Login failed: " + e.message);
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        currentUserId = null;
+        currentUserRole = null;
+        unreadNotifications = [];
+        currentFeedMode = 'public';
+        document.getElementById('navUserInfo').style.display = "none";
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        showToast("Logged out successfully.", "success");
+        switchPage('authPage');
+        updateNavControls();
+        closeNotificationsPanel();
+    }
+
+    async function goHome() { 
+        switchPage('listPage'); 
+        await loadTopicsFromBackend();
+        renderTopics(); 
+    }
+
+    function updateNavControls() {
+        const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+        document.getElementById('adminDashboardBtn').style.display = isAdmin ? 'inline-block' : 'none';
+        document.getElementById('notificationsBtn').style.display = currentUser ? 'inline-block' : 'none';
+        document.getElementById('myPostsBtn').style.display = currentUser ? 'inline-block' : 'none';
+        document.getElementById('publicFeedBtn').style.display = currentFeedMode === 'mine' ? 'inline-block' : 'none';
+    }
+
+    function showMyPosts() {
+        currentFeedMode = 'mine';
+        updateNavControls();
+        loadTopicsFromBackend().then(() => renderTopics());
+    }
+
+    function showPublicFeed() {
+        currentFeedMode = 'public';
+        updateNavControls();
+        loadTopicsFromBackend().then(() => renderTopics());
+    }
+
+    function toggleNotificationsPanel() {
+        const panel = document.getElementById('notificationsPanel');
+        const opening = !panel.classList.contains('active');
+        panel.classList.toggle('active');
+        if (opening) {
+            loadNotifications();
+        }
+    }
+
+    function closeNotificationsPanel() {
+        document.getElementById('notificationsPanel').classList.remove('active');
+    }
+
+    async function loadNotifications() {
+        if (!currentUserId) return;
+        try {
+            unreadNotifications = await apiRequest('/admin/notifications/unread', {
+                headers: {
+                    'X-User-Id': currentUserId,
+                    'X-User-Role': currentUserRole || localStorage.getItem('userRole') || 'USER'
+                }
+            });
+            renderNotifications();
+        } catch (e) {
+            unreadNotifications = [];
+            renderNotifications();
+        }
+    }
+
+    function renderNotifications() {
+        const panel = document.getElementById('notificationsPanel');
+        const count = unreadNotifications.length;
+        const badge = document.getElementById('notificationCount');
+        if (count > 0) {
+            badge.style.display = 'inline-block';
+            badge.textContent = String(count);
+        } else {
+            badge.style.display = 'none';
+        }
+
+        if (count === 0) {
+            panel.innerHTML = '<div class="notifications-header">Unread Notifications</div><div class="notification-item">No unread notifications.</div>';
+            return;
+        }
+
+        panel.innerHTML = `
+            <div class="notifications-header">Unread Notifications</div>
+            ${unreadNotifications.map(notification => `
+                <div class="notification-item" onclick="markNotificationRead(${notification.id})">
+                    <div>${notification.message}</div>
+                    <div class="notification-meta">${formatDateHK(notification.created_at)}</div>
+                </div>
+            `).join('')}
+        `;
+    }
+
+    async function markNotificationRead(notificationId) {
+        try {
+            await apiRequest(`/admin/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'X-User-Id': currentUserId,
+                    'X-User-Role': currentUserRole || localStorage.getItem('userRole') || 'USER'
+                }
+            });
+            unreadNotifications = unreadNotifications.filter(notification => notification.id !== notificationId);
+            renderNotifications();
+            await loadNotifications();
+        } catch (e) {
+            showToast('Failed to mark notification read: ' + e.message, 'warning');
+        }
+    }
+
+    async function openTopic(id) {
+        activeTopicId = id;
+        switchPage('detailPage');
+        await loadCommentsForTopic(id);
+        renderOriginalPost();
+    }
+
+    // --- 🌟 Advanced Interactive Image Modal (Pan & Zoom Logic) ---
+    let scale = 1;
+    let panning = false;
+    let pointX = 0;
+    let pointY = 0;
+    let startX = 0;
+    let startY = 0;
+
+    const zoomContainer = document.getElementById("zoomContainer");
+    const modalImage = document.getElementById("modalImageSrc");
+
+    function setTransform() {
+        modalImage.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+    }
+
+    function resetZoomState() {
+        scale = 1;
+        pointX = 0;
+        pointY = 0;
+        setTransform();
+    }
+
+    function openImageModal(src, event) {
+        if(event) event.stopPropagation(); 
+        document.getElementById('modalImageSrc').src = src;
+        document.getElementById('imageModal').style.display = 'flex';
+        resetZoomState();
+    }
+
+    function closeImageModal() {
+        document.getElementById('imageModal').style.display = 'none';
+        document.getElementById('modalImageSrc').src = '';
+        resetZoomState();
+    }
+
+    zoomContainer.onwheel = function (e) {
+        e.preventDefault();
+        const xs = (e.clientX - pointX) / scale;
+        const ys = (e.clientY - pointY) / scale;
+        const delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
+        (delta > 0) ? (scale *= 1.2) : (scale /= 1.2);
+        scale = Math.min(Math.max(0.5, scale), 5); 
+        pointX = e.clientX - xs * scale;
+        pointY = e.clientY - ys * scale;
+        setTransform();
+    };
+
+    zoomContainer.onmousedown = function (e) {
+        if (scale > 1) { 
+            e.preventDefault();
+            startX = e.clientX - pointX;
+            startY = e.clientY - pointY;
+            panning = true;
+        }
+    };
+
+    zoomContainer.onmouseup = function (e) { panning = false; };
+    zoomContainer.onmouseleave = function (e) { panning = false; };
+
+    zoomContainer.onmousemove = function (e) {
+        if (!panning) return;
+        e.preventDefault();
+        pointX = e.clientX - startX;
+        pointY = e.clientY - startY;
+        setTransform();
+    };
+
+    // --- Report & Delete Modals ---
+    function openReportModal(id, type, event) {
+        if(event) event.stopPropagation();
+        targetReportId = id;
+        targetReportType = type;
+        
+        document.getElementById('reportModalTitle').innerText = `Report ${type === 'post' ? 'Post' : 'Comment'}`;
+        document.getElementById('reportReason').value = 'copyright';
+        document.getElementById('reportDetails').value = '';
+        document.getElementById('reportModal').style.display = 'flex';
+    }
+
+    function closeReportModal() {
+        document.getElementById('reportModal').style.display = 'none';
+        targetReportId = null;
+        targetReportType = null;
+    }
+
+    async function submitReport() {
+        if (!currentUserId) {
+            closeReportModal();
+            return showToast("Please login first.", "warning");
+        }
+
+        const reason = document.getElementById('reportReason').value;
+        const details = document.getElementById('reportDetails').value;
+
+        try {
+            await apiRequest('/reports', {
+                method: 'POST',
+                body: JSON.stringify({
+                    targetType: targetReportType,
+                    targetId: targetReportId,
+                    reason,
+                    details,
+                    createdBy: currentUserId
+                })
+            });
+            showToast("Report submitted successfully for review.", "warning");
+        } catch (e) {
+            showToast("Failed to submit report: " + e.message);
+        }
+
+        closeReportModal();
+    }
+
+    function openDeleteModal(id, type, event) {
+        if(event) event.stopPropagation();
+        targetDeleteId = id;
+        targetDeleteType = normalizeAdminContentType(type);
+        
+        document.getElementById('deleteModalTitle').innerText = `Delete ${type === 'post' ? 'Post' : 'Comment'}`;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        targetDeleteId = null;
+        targetDeleteType = null;
+    }
+
+    async function confirmDelete() {
+        if(!targetDeleteId) return;
+        
+        const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+        
+        if (targetDeleteType === 'topic') {
+            try {
+                const url = isAdmin 
+                    ? `/admin/content/topic/${targetDeleteId}`
+                    : `/topics/${targetDeleteId}`;
+                const headers = isAdmin 
+                    ? { 'X-User-Role': 'ADMIN' } 
+                    : {};
+                    
+                await apiRequest(url, { 
+                    method: 'DELETE',
+                    headers: headers
+                });
+                topics = topics.filter(t => t.id !== targetDeleteId);
+                showToast("Post deleted successfully.", "success");
+
+                if (activeTopicId === targetDeleteId) {
+                    await goHome();
+                } else {
+                    renderTopics();
+                }
+            } catch (e) {
+                showToast("Failed to delete post: " + e.message);
+            }
+        } else if (targetDeleteType === 'comment') {
+            const topic = topics.find(t => t.id === activeTopicId);
+            if(topic) {
+                try {
+                    const url = isAdmin 
+                        ? `/admin/content/comment/${targetDeleteId}`
+                        : `/topics/${activeTopicId}/comments/${targetDeleteId}`;
+                    const headers = isAdmin 
+                        ? { 'X-User-Role': 'ADMIN' } 
+                        : {};
+                        
+                    await apiRequest(url, { 
+                        method: 'DELETE',
+                        headers: headers
+                    });
+                    topic.comments = topic.comments.filter(c => c.id !== targetDeleteId);
+                    topic.commentCount = Math.max(0, (topic.commentCount || 0) - 1);
+                    showToast("Comment deleted successfully.", "success");
+                    renderComments();
+                    renderOriginalPost();
+                } catch (e) {
+                    showToast("Failed to delete comment: " + e.message);
+                }
+            }
+        }
+        closeDeleteModal();
+    }
+
+    // --- Utilities & Rendering ---
+    function sortItems(items, sortType) {
+        let sorted = [...items];
+        switch(sortType) {
+            case 'newest': sorted.sort((a,b) => b.id - a.id); break;
+            case 'oldest': sorted.sort((a,b) => a.id - b.id); break;
+            case 'most_likes': sorted.sort((a,b) => b.likes - a.likes); break;
+            case 'most_dislikes': sorted.sort((a,b) => b.dislikes - a.dislikes); break;
+            case 'most_comments': sorted.sort((a,b) => (b.commentCount ?? (b.comments ? b.comments.length : 0)) - (a.commentCount ?? (a.comments ? a.comments.length : 0))); break;
+        }
+        return sorted;
+    }
+
+    function generateMediaHtml(fileType, fileUrl, fileName, isComment = false) {
+        if (!fileType || !fileUrl) return '';
+
+        if (fileType.startsWith('image/')) {
+            // object-fit: contain applies automatically through CSS class .feed-image
+            return `<img src="${fileUrl}" class="feed-image" onclick="openImageModal('${fileUrl}', event)" alt="Attached Image">`;
+        } else if (fileType.startsWith('video/')) {
+            return `<video src="${fileUrl}" class="feed-video" controls></video>`;
+        } else {
+            return `<a href="${fileUrl}" download="${fileName}" style="text-decoration: none;" onclick="event.stopPropagation()">
+                        <div class="generic-file">Download Attached File: ${fileName}</div>
+                    </a>`;
+        }
+    }
+
+    function previewMedia(inputId, previewContainerId) {
+        const fileInput = document.getElementById(inputId);
+        const file = fileInput.files[0];
+        const previewContainer = document.getElementById(previewContainerId);
+        
+        previewContainer.innerHTML = ''; 
+        if (file) {
+            previewContainer.style.display = 'block';
+            previewContainer.innerHTML = generateMediaHtml(file.type, URL.createObjectURL(file), file.name, inputId === 'commentMediaUpload');
+        } else {
+            previewContainer.style.display = 'none';
+        }
+    }
+
+    function generateActionButtonsHtml(itemId, authorId, type) {
+        const isAdmin = localStorage.getItem('userRole') === 'ADMIN';
+        const isAuthor = String(authorId) === String(currentUserId);
+        if (isAdmin) {
+            return `
+                <button class="reaction-btn action-delete" onclick="openDeleteModal(${itemId}, '${type}', event)">Delete Content</button>
+                <button class="reaction-btn action-report" onclick="banUserFromFeed(${authorId}, event)">Ban User</button>
+            `;
+        }
+        if (isAuthor) {
+            return `<button class="reaction-btn action-delete" onclick="openDeleteModal(${itemId}, '${type}', event)">Delete</button>`;
+        } else {
+            return `<button class="reaction-btn action-report" onclick="openReportModal(${itemId}, '${type}', event)">Report</button>`;
+        }
+    }
+
+    function banUserFromFeed(authorId, event) {
+        if (event) event.stopPropagation();
+        if (!authorId || Number.isNaN(Number(authorId))) {
+            showToast('Cannot ban user: invalid user id.', 'warning');
+            return;
+        }
+        targetBanUserId = authorId;
+        document.getElementById('banModalMessage').textContent = `Ban ${displayNameForUser(authorId)}? This user will be unable to post or comment.`;
+        document.getElementById('banModal').style.display = 'flex';
+    }
+
+    function closeBanModal() {
+        document.getElementById('banModal').style.display = 'none';
+        targetBanUserId = null;
+    }
+
+    async function confirmBanUser() {
+        if (!targetBanUserId) return;
+        try {
+            await apiRequest(`/admin/users/${targetBanUserId}/ban`, {
+                method: 'POST',
+                headers: {
+                    'X-User-Role': 'ADMIN',
+                    'X-Admin-Username': currentUser || localStorage.getItem('username') || 'admin'
+                }
+            });
+            showToast('User banned successfully', 'success');
+            closeBanModal();
+        } catch (e) {
+            showToast('Failed to ban user: ' + e.message, 'warning');
+        }
+    }
+
+    function normalizeAdminContentType(type) {
+        const normalized = String(type || '').toLowerCase();
+        if (normalized === 'post' || normalized === 'topic') return 'topic';
+        if (normalized === 'comment') return 'comment';
+        return normalized;
+    }
+
+    // --- Post Management ---
+    async function addTopic() {
+        if(!currentUser) return showToast("You must be logged in to post.");
+        const input = document.getElementById('topicInput').value;
+        const fileInput = document.getElementById('mediaUpload').files[0];
+        if (!input.trim() && !fileInput) return showToast("Post cannot be empty.");
+        if (input.trim().length < 3 || input.trim().length > 120) {
+            return showToast("Post text must be between 3 and 120 characters.");
+        }
+
+        if (fileInput) {
+            showToast("File upload backend is not implemented yet. Posting text only.", "warning");
+        }
+
+        try {
+            await apiRequest('/topics', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: input.trim(),
+                    createdBy: currentUserId
+                })
+            });
+        } catch (e) {
+            return showToast("Failed to create post: " + e.message);
+        }
+
+        document.getElementById('topicInput').value = '';
+        document.getElementById('mediaUpload').value = '';
+        document.getElementById('mediaPreview').style.display = 'none';
+        document.getElementById('postSort').value = 'newest';
+
+        await loadTopicsFromBackend();
+        renderTopics();
+        showToast("Post submitted successfully!", "success");
+    }
+
+    function handleReactionToggle(item, reactionType) {
+        if(!currentUser) { showToast("Please login to react."); return false; }
+        if(!item.userReactions) item.userReactions = {};
+        
+        const currentReaction = item.userReactions[currentUser];
+        if (currentReaction === reactionType) {
+            if(reactionType === 'like') item.likes--; else item.dislikes--;
+            delete item.userReactions[currentUser];
+        } else {
+            if (currentReaction === 'like') item.likes--;
+            if (currentReaction === 'dislike') item.dislikes--;
+            if(reactionType === 'like') item.likes++; else item.dislikes++;
+            item.userReactions[currentUser] = reactionType;
+        }
+        return true;
+    }
+
+    async function togglePostReaction(id, type, event) {
+        if(event) event.stopPropagation();
+        const topic = topics.find(t => t.id === id);
+        if(!topic) return;
+
+        if (!currentUserId) {
+            return showToast("Please login to react.", "warning");
+        }
+
+        try {
+            const res = await apiRequest(`/reactions/topics/${id}`, {
+                method: 'POST',
+                body: JSON.stringify({ userId: currentUserId, type })
+            });
+
+            topic.likes = res.likes;
+            topic.dislikes = res.dislikes;
+            if (!topic.userReactions) topic.userReactions = {};
+            if (res.currentReaction) {
+                topic.userReactions[currentUser] = res.currentReaction;
+            } else {
+                delete topic.userReactions[currentUser];
+            }
+
+            renderTopics();
+            if(activeTopicId === id) renderOriginalPost();
+        } catch (e) {
+            showToast("Failed to update reaction: " + e.message);
+        }
+    }
+
+    async function toggleCommentReaction(topicId, commentId, type) {
+        const topic = topics.find(t => t.id === topicId);
+        if(!topic) return;
+        const comment = topic.comments.find(c => c.id === commentId);
+        if(!comment) return;
+
+        if (!currentUserId) {
+            return showToast("Please login to react.", "warning");
+        }
+
+        try {
+            const res = await apiRequest(`/reactions/comments/${commentId}`, {
+                method: 'POST',
+                body: JSON.stringify({ userId: currentUserId, type })
+            });
+
+            comment.likes = res.likes;
+            comment.dislikes = res.dislikes;
+            if (!comment.userReactions) comment.userReactions = {};
+            if (res.currentReaction) {
+                comment.userReactions[currentUser] = res.currentReaction;
+            } else {
+                delete comment.userReactions[currentUser];
+            }
+
+            renderComments();
+        } catch (e) {
+            showToast("Failed to update reaction: " + e.message);
+        }
+    }
+
+    function renderTopics() {
+        const container = document.getElementById('topicContainer');
+        container.innerHTML = '';
+        
+        const sortType = document.getElementById('postSort').value;
+        const sortedTopics = sortItems(topics, sortType);
+
+        sortedTopics.forEach(t => {
+            const el = document.createElement('div');
+            el.className = 'topic-card clickable';
+            
+            let statusHtml = t.status === "SCANNING" ? `<span class="status-badge status-scanning">[ SCANNING FILE FOR VIRUS... ]</span>` : '';
+            let mediaDisplay = (t.fileUrl && t.status === "CLEAN") ? generateMediaHtml(t.fileType, t.fileUrl, t.fileName) : '';
+            
+            const userReact = t.userReactions && t.userReactions[currentUser];
+            const likeClass = userReact === 'like' ? 'active-like' : '';
+            const dislikeClass = userReact === 'dislike' ? 'active-dislike' : '';
+
+            el.innerHTML = `
+                <div>
+                    <span class="author-tag">@${t.author}</span> 
+                    <span class="timestamp">${t.time}</span>
+                    ${statusHtml}
+                </div>
+                <div class="post-content">${t.content}</div>
+                ${mediaDisplay}
+                <div class="reaction-container">
+                    <button class="reaction-btn ${likeClass}" onclick="togglePostReaction(${t.id}, 'like', event)">👍 Like (${t.likes})</button>
+                    <button class="reaction-btn ${dislikeClass}" onclick="togglePostReaction(${t.id}, 'dislike', event)">👎 Dislike (${t.dislikes})</button>
+                    <span style="font-size: 13px; color: #64748b; margin-left: 10px;">Comments: ${t.commentCount || t.comments.length}</span>
+                    ${generateActionButtonsHtml(t.id, t.createdBy, 'post')}
+                </div>
+            `;
+            el.onclick = async () => { await openTopic(t.id); };
+            container.appendChild(el);
+        });
+    }
+
+    function renderOriginalPost() {
+        const container = document.getElementById('originalPostContainer');
+        const wrapper = document.getElementById('commentSectionWrapper');
+        
+        const t = topics.find(t => t.id === activeTopicId);
+        
+        if(!t) {
+            container.innerHTML = `
+                <div class="form-box missing-state">
+                    <h2>404 - Post Missing</h2>
+                    <p style="color: var(--text-muted);">This post has been deleted by the author or removed by administrators.</p>
+                </div>
+            `;
+            wrapper.style.display = 'none'; 
+            return;
+        }
+
+        wrapper.style.display = 'block'; 
+        
+        let statusHtml = t.status === "SCANNING" ? `<span class="status-badge status-scanning">[ SCANNING FILE FOR VIRUS... ]</span>` : '';
+        let mediaDisplay = (t.fileUrl && t.status === "CLEAN") ? generateMediaHtml(t.fileType, t.fileUrl, t.fileName) : '';
+
+        const userReact = t.userReactions && t.userReactions[currentUser];
+        const likeClass = userReact === 'like' ? 'active-like' : '';
+        const dislikeClass = userReact === 'dislike' ? 'active-dislike' : '';
+
+        container.innerHTML = `
+            <div class="topic-card" style="border-left: 4px solid var(--primary-color); cursor: default;">
+                <div>
+                    <span class="author-tag">@${t.author}</span> 
+                    <span class="timestamp">${t.time}</span>
+                    ${statusHtml}
+                </div>
+                <div class="post-content">${t.content}</div>
+                ${mediaDisplay}
+                <div class="reaction-container">
+                    <button class="reaction-btn ${likeClass}" onclick="togglePostReaction(${t.id}, 'like')">👍 Like (${t.likes})</button>
+                    <button class="reaction-btn ${dislikeClass}" onclick="togglePostReaction(${t.id}, 'dislike')">👎 Dislike (${t.dislikes})</button>
+                    ${generateActionButtonsHtml(t.id, t.createdBy, 'post')}
+                </div>
+            </div>
+        `;
+        renderComments(); 
+    }
+
+    async function addComment() {
+        if(!currentUser) return showToast("You must be logged in to comment.");
+        const msg = document.getElementById('msgInput').value;
+        const fileInput = document.getElementById('commentMediaUpload').files[0];
+        
+        if (!msg.trim() && !fileInput) return showToast("Comment cannot be empty.");
+
+        const topic = topics.find(t => t.id === activeTopicId);
+        if(!topic) return;
+        
+        if (fileInput) {
+            showToast("Comment file upload backend is not implemented yet. Sending text only.", "warning");
+        }
+
+        try {
+            await apiRequest(`/topics/${activeTopicId}/comments`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    text: msg.trim(),
+                    createdBy: currentUserId
+                })
+            });
+        } catch (e) {
+            return showToast("Failed to add comment: " + e.message);
+        }
+        
+        document.getElementById('msgInput').value = '';
+        document.getElementById('commentMediaUpload').value = '';
+        document.getElementById('commentMediaPreview').style.display = 'none';
+        document.getElementById('commentSort').value = 'newest';
+
+        await loadCommentsForTopic(activeTopicId);
+        await loadTopicsFromBackend();
+        
+        showToast("Comment added successfully!", "success");
+        renderComments();
+        renderOriginalPost(); 
+    }
+
+    function renderComments() {
+        const container = document.getElementById('commentContainer');
+        container.innerHTML = '';
+        const topic = topics.find(t => t.id === activeTopicId);
+        if(!topic) return;
+
+        if(topic.comments.length === 0) {
+            container.innerHTML = "<p style='color: #64748b; font-size: 14px;'>No comments yet.</p>";
+            return;
+        }
+
+        const sortType = document.getElementById('commentSort').value;
+        const sortedComments = sortItems(topic.comments, sortType);
+
+        sortedComments.forEach(c => {
+            const userReact = c.userReactions && c.userReactions[currentUser];
+            const likeClass = userReact === 'like' ? 'active-like' : '';
+            const dislikeClass = userReact === 'dislike' ? 'active-dislike' : '';
+            
+            let statusHtml = c.status === "SCANNING" ? `<span class="status-badge status-scanning">[ SCANNING FILE... ]</span>` : '';
+            let mediaDisplay = (c.fileUrl && c.status === "CLEAN") ? generateMediaHtml(c.fileType, c.fileUrl, c.fileName, true) : '';
+
+            const el = document.createElement('div');
+            el.className = 'comment-card';
+            el.innerHTML = `
+                <div>
+                    <strong style="color: var(--primary-color);">@${c.author}</strong> 
+                    <span class="timestamp" style="margin-left: 5px;">${c.time}</span>
+                    ${statusHtml}
+                </div>
+                <div class="comment-text">${c.text}</div>
+                ${mediaDisplay}
+                <div class="reaction-container" style="border: none; padding-top: 0; margin-top: 10px;">
+                    <button class="reaction-btn ${likeClass}" onclick="toggleCommentReaction(${topic.id}, ${c.id}, 'like')">👍 Like (${c.likes})</button>
+                    <button class="reaction-btn ${dislikeClass}" onclick="toggleCommentReaction(${topic.id}, ${c.id}, 'dislike')">👎 Dislike (${c.dislikes})</button>
+                    ${generateActionButtonsHtml(c.id, c.createdBy, 'comment')}
+                </div>
+            `;
+            container.appendChild(el);
+        });
+    }
+
+    // --- Forgot / Reset Password Flow ---
+    function openForgotModal(event) {
+        if (event) event.preventDefault();
+        document.getElementById('forgotEmail').value = '';
+        document.getElementById('forgotModal').style.display = 'flex';
+    }
+
+    function closeForgotModal() {
+        document.getElementById('forgotModal').style.display = 'none';
+    }
+
+    async function submitForgot() {
+        const email = document.getElementById('forgotEmail').value;
+        if (!email) return showToast('Please enter your email.', 'warning');
+        try {
+            const res = await apiRequest('/auth/forgot-password', {
+                method: 'POST',
+                body: JSON.stringify({ username: email })
+            });
+            showToast('OTP sent to your email (demo OTP: ' + (res.otp || 'hidden') + ')', 'success');
+            closeForgotModal();
+            // prefill reset modal email
+            document.getElementById('resetEmail').value = email;
+            document.getElementById('resetOtp').value = '';
+            document.getElementById('resetNewPassword').value = '';
+            document.getElementById('resetModal').style.display = 'flex';
+        } catch (e) {
+            showToast('Failed to request OTP: ' + e.message, 'error');
+        }
+    }
+
+    function closeResetModal() {
+        document.getElementById('resetModal').style.display = 'none';
+    }
+
+    async function submitReset() {
+        const email = document.getElementById('resetEmail').value;
+        const otp = document.getElementById('resetOtp').value;
+        const newPassword = document.getElementById('resetNewPassword').value;
+        if (!email || !otp || !newPassword) return showToast('Email, OTP and new password are required.', 'warning');
+        try {
+            await apiRequest('/auth/reset-password', {
+                method: 'POST',
+                body: JSON.stringify({ email, otp, newPassword })
+            });
+            showToast('Password reset successful. You may now login.', 'success');
+            closeResetModal();
+            toggleAuth('login');
+        } catch (e) {
+            showToast('Failed to reset password: ' + e.message, 'error');
+        }
+    }
+</script>
+
+</body>
+</html>
+>>>>>>> infra-setup
