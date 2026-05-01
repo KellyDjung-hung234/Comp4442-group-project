@@ -54,9 +54,14 @@ resource "aws_security_group" "k3s_sg" {
 # EC2 instance that will run k3s. user_data installs k3s on boot.
 resource "aws_instance" "k3s_node" {
   ami                    = "ami-024e6efaf93d85776"
-  instance_type          = "t3.micro"
+  instance_type          = "c7i-flex.large"
   key_name               = "shareu-key"
   vpc_security_group_ids = [aws_security_group.k3s_sg.id]
+
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 30
+  }
 
   user_data = <<-EOF
               #!/bin/bash

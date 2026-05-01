@@ -6,7 +6,7 @@ public interface UserRepository {
 
     boolean existsByUsername(String username);
 
-    long create(String username, String password);
+    long create(String username, String password, String email);
 
     java.util.Optional<UserAuthRecord> findAuthByUsername(String username);
 

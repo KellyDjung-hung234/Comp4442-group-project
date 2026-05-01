@@ -8,6 +8,9 @@ public record Comment(
         String text,
         Long createdBy,
         String authorUsername,
+        String fileUrl,
+        String fileType,
+        String fileName,
         Instant createdAt,
         Instant updatedAt
 ) {

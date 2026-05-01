@@ -23,6 +23,9 @@ public class JdbcTopicRepository implements TopicRepository {
             rs.getLong("comment_count"),
             rs.getLong("like_count"),
             rs.getLong("dislike_count"),
+            rs.getString("file_url"),
+            rs.getString("file_type"),
+            rs.getString("file_name"),
             rs.getLong("version"),
             rs.getTimestamp("created_at").toInstant(),
             rs.getTimestamp("updated_at").toInstant()
@@ -31,7 +34,7 @@ public class JdbcTopicRepository implements TopicRepository {
     private final JdbcTemplate jdbcTemplate;
     private static final String TOPIC_SELECT =
             "SELECT t.id, t.title, t.created_by, COALESCE(u.username, CONCAT('User #', t.created_by)) AS author_username, " +
-                    "t.comment_count, t.like_count, t.dislike_count, t.version, t.created_at, t.updated_at " +
+                    "t.comment_count, t.like_count, t.dislike_count, t.file_url, t.file_type, t.file_name, t.version, t.created_at, t.updated_at " +
                     "FROM topics t LEFT JOIN users u ON u.id = t.created_by ";
 
     public JdbcTopicRepository(JdbcTemplate jdbcTemplate) {
@@ -39,15 +42,18 @@ public class JdbcTopicRepository implements TopicRepository {
     }
 
     @Override
-    public Topic create(String title, long createdBy) {
+    public Topic create(String title, long createdBy, String fileUrl, String fileType, String fileName) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO topics (title, created_by) VALUES (?, ?)",
+                    "INSERT INTO topics (title, created_by, file_url, file_type, file_name) VALUES (?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, title);
             ps.setLong(2, createdBy);
+            ps.setString(3, fileUrl);
+            ps.setString(4, fileType);
+            ps.setString(5, fileName);
             return ps;
         }, keyHolder);
 

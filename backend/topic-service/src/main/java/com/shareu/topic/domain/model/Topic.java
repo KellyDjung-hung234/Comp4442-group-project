@@ -10,6 +10,9 @@ public record Topic(
         Long commentCount,
         Long likeCount,
         Long dislikeCount,
+        String fileUrl,
+        String fileType,
+        String fileName,
         Long version,
         Instant createdAt,
         Instant updatedAt

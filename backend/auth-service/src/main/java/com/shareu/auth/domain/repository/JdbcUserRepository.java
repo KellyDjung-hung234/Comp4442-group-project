@@ -1,6 +1,7 @@
 package com.shareu.auth.domain.repository;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -40,18 +41,32 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     @Override
-    public long create(String username, String password) {
+    public long create(String username, String password, String email) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO users (username, display_name, password) VALUES (?, ?, ?)",
-                    Statement.RETURN_GENERATED_KEYS
-            );
-            ps.setString(1, username);
-            ps.setString(2, username);
-            ps.setString(3, password);
-            return ps;
-        }, keyHolder);
+        try {
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(
+                        "INSERT INTO users (username, display_name, password, email) VALUES (?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS
+                );
+                ps.setString(1, username);
+                ps.setString(2, username);
+                ps.setString(3, password);
+                ps.setString(4, email);
+                return ps;
+            }, keyHolder);
+        } catch (BadSqlGrammarException ex) {
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(
+                        "INSERT INTO users (username, display_name, password) VALUES (?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS
+                );
+                ps.setString(1, username);
+                ps.setString(2, username);
+                ps.setString(3, password);
+                return ps;
+            }, keyHolder);
+        }
 
         Number key = keyHolder.getKey();
         if (key == null) {

@@ -1,5 +1,6 @@
 package com.shareu.auth.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -8,6 +9,9 @@ public record AuthRegisterRequest(
         @NotBlank(message = "username is required")
         @Size(min = 3, max = 32, message = "username must be between 3 and 32 characters")
         String username,
+        @Email(message = "email must be valid")
+        @Size(max = 255, message = "email must be at most 255 characters")
+        String email,
         @NotBlank(message = "password is required")
         @Size(min = 8, max = 20, message = "password must be between 8 and 20 characters")
         String password,

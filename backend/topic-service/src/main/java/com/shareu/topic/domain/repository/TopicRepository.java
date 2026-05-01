@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface TopicRepository {
 
-    Topic create(String title, long createdBy);
+    Topic create(String title, long createdBy, String fileUrl, String fileType, String fileName);
 
     Optional<Topic> findById(long topicId);
 

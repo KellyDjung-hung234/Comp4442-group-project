@@ -42,7 +42,14 @@ public class CommentService {
             throw new BadRequestException("Your account is banned. You cannot post or comment.");
         }
 
-        Comment created = commentRepository.create(topicId, request.text().trim(), request.createdBy());
+        Comment created = commentRepository.create(
+                topicId,
+                request.text().trim(),
+                request.createdBy(),
+                normalizeOptional(request.fileUrl()),
+                normalizeOptional(request.fileType()),
+                normalizeOptional(request.fileName())
+        );
         
         // Increment comment count on topic
         try {
@@ -107,6 +114,9 @@ public class CommentService {
                 comment.text(),
                 comment.createdBy(),
                 comment.authorUsername(),
+                comment.fileUrl(),
+                comment.fileType(),
+                comment.fileName(),
                 comment.createdAt(),
                 comment.updatedAt()
         );
@@ -139,5 +149,12 @@ public class CommentService {
                 topicOwnerId,
                 message
         );
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

@@ -197,10 +197,11 @@ Production deployment uses AWS and Kubernetes:
 
 | Component | Usage |
 | :--- | :--- |
-| EC2 `t3.micro` | Runs the k3s Kubernetes node. |
+| EC2 `c7i-flex.large` | Runs the single-node k3s Kubernetes cluster for all Spring Boot microservices. |
+| EBS root volume | `gp2`, 30 GiB, 100 baseline IOPS for the EC2 k3s node. |
 | Elastic IP | Provides a stable public IP for the UI. |
 | RDS MySQL 8.0 | Stores the `shareudb` database. |
-| S3 | Stores uploaded media files. |
+| S3 | Provisioned media bucket for cloud media storage; the current working image upload path stores image data URLs in database media fields. |
 | Docker Hub | Stores service container images. |
 | GitHub Actions | Builds, pushes, and restarts deployments on EC2. |
 

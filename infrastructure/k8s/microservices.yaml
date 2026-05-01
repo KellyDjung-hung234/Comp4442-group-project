@@ -14,8 +14,8 @@ type: Opaque
 stringData:
   SPRING_DATASOURCE_USERNAME: "admin"
   SPRING_DATASOURCE_PASSWORD: "ShareU_comp4443"
-  MAIL_USERNAME: "kellyhung234@gmail.com"
-  MAIL_PASSWORD: "gtjb xqta dvek yzyy"
+  MAIL_USERNAME: "set-via-github-secret"
+  MAIL_PASSWORD: "set-via-github-secret"
 ---
 apiVersion: apps/v1
 kind: Deployment

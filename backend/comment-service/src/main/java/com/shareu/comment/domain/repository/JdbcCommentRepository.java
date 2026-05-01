@@ -22,6 +22,9 @@ public class JdbcCommentRepository implements CommentRepository {
             rs.getString("text_content"),
             rs.getLong("created_by"),
             rs.getString("author_username"),
+            rs.getString("file_url"),
+            rs.getString("file_type"),
+            rs.getString("file_name"),
             rs.getTimestamp("created_at").toInstant(),
             rs.getTimestamp("updated_at").toInstant()
     );
@@ -30,7 +33,7 @@ public class JdbcCommentRepository implements CommentRepository {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private static final String COMMENT_SELECT =
             "SELECT c.id, c.topic_id, c.text_content, c.created_by, COALESCE(u.username, CONCAT('User #', c.created_by)) AS author_username, " +
-                    "c.created_at, c.updated_at FROM comments c LEFT JOIN users u ON u.id = c.created_by ";
+                    "c.file_url, c.file_type, c.file_name, c.created_at, c.updated_at FROM comments c LEFT JOIN users u ON u.id = c.created_by ";
 
     public JdbcCommentRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -38,16 +41,19 @@ public class JdbcCommentRepository implements CommentRepository {
     }
 
     @Override
-    public Comment create(long topicId, String text, long createdBy) {
+    public Comment create(long topicId, String text, long createdBy, String fileUrl, String fileType, String fileName) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO comments (topic_id, text_content, created_by) VALUES (?, ?, ?)",
+                    "INSERT INTO comments (topic_id, text_content, created_by, file_url, file_type, file_name) VALUES (?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS
             );
             ps.setLong(1, topicId);
             ps.setString(2, text);
             ps.setLong(3, createdBy);
+            ps.setString(4, fileUrl);
+            ps.setString(5, fileType);
+            ps.setString(6, fileName);
             return ps;
         }, keyHolder);
 

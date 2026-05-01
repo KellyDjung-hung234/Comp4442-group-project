@@ -39,21 +39,26 @@ public class AuthService {
     @Transactional(readOnly = true)
     public String requestOtp(RequestOtpRequest request) {
         String username = request.username().trim().toLowerCase();
+        String recipient = normalizeOptional(request.email());
+        if (recipient == null) {
+            recipient = username;
+        }
         String otp = String.format("%06d", random.nextInt(1_000_000));
         otpStore.put(username, otp);
+        otpStore.put(recipient, otp);
 
         // Always log OTP to console for development/testing
-        log.info("Mock Email - OTP for {} is: {}", username, otp);
+        log.info("Mock Email - OTP for {} is: {}", recipient, otp);
 
         // Try to send email if mailSender configured, but don't fail if it doesn't work
         try {
             if (mailSender != null) {
                 SimpleMailMessage msg = new SimpleMailMessage();
-                msg.setTo(username);
+                msg.setTo(recipient);
                 msg.setSubject("Your ShareU OTP");
                 msg.setText("Your ShareU OTP is: " + otp + "\nThis code is valid for a short time.");
                 mailSender.send(msg);
-                log.info("OTP email sent successfully to {}", username);
+                log.info("OTP email sent successfully to {}", recipient);
             }
         } catch (Exception e) {
             log.error("Failed to send email for OTP, but proceeding with registration. OTP: {}", otp, e);
@@ -77,12 +82,17 @@ public class AuthService {
     @Transactional
     public AuthRegisterResponse register(AuthRegisterRequest request) {
         String username = request.username().trim().toLowerCase();
+        String email = normalizeOptional(request.email());
 
         if (!request.termsAccepted()) {
             throw new BadRequestException("Terms of use must be accepted");
         }
 
-        String savedOtp = otpStore.get(username);
+        String otpKey = email != null ? email : username;
+        String savedOtp = otpStore.get(otpKey);
+        if (savedOtp == null) {
+            savedOtp = otpStore.get(username);
+        }
         if (savedOtp == null || !savedOtp.equals(request.otp())) {
             throw new BadRequestException("Invalid OTP");
         }
@@ -92,8 +102,11 @@ public class AuthService {
         }
 
         String encoded = passwordEncoder.encode(request.password());
-        long userId = userRepository.create(username, encoded);
+        long userId = userRepository.create(username, encoded, email);
         otpStore.remove(username);
+        if (email != null) {
+            otpStore.remove(email);
+        }
 
         return new AuthRegisterResponse(userId, username);
     }
@@ -126,5 +139,12 @@ public class AuthService {
         String encodedNew = passwordEncoder.encode(newPassword);
         userRepository.updatePassword(username, encodedNew);
         invalidateOtp(username);
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim().toLowerCase();
     }
 }

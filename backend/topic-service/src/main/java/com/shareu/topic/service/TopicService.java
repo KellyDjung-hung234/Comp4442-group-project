@@ -44,7 +44,13 @@ public class TopicService {
             throw new BadRequestException("Your account is banned. You cannot post or comment.");
         }
 
-        Topic created = topicRepository.create(normalizedTitle, request.createdBy());
+        Topic created = topicRepository.create(
+                normalizedTitle,
+                request.createdBy(),
+                normalizeOptional(request.fileUrl()),
+                normalizeOptional(request.fileType()),
+                normalizeOptional(request.fileName())
+        );
         return toResponse(created);
     }
 
@@ -113,6 +119,9 @@ public class TopicService {
                 topic.commentCount(),
                 topic.likeCount(),
                 topic.dislikeCount(),
+                topic.fileUrl(),
+                topic.fileType(),
+                topic.fileName(),
                 topic.createdAt(),
                 topic.updatedAt()
         );
@@ -127,5 +136,12 @@ public class TopicService {
             throw new NotFoundException("Topic not found");
         }
         topicRepository.updateReactionCounts(topicId, likeCount, dislikeCount);
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

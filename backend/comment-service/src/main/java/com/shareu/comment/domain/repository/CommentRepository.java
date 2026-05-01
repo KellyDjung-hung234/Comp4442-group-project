@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface CommentRepository {
 
-    Comment create(long topicId, String text, long createdBy);
+    Comment create(long topicId, String text, long createdBy, String fileUrl, String fileType, String fileName);
 
     List<Comment> findByTopicPage(long topicId, int page, int size);
 

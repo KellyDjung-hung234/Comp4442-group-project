@@ -30,14 +30,14 @@ public class AuthController {
 
     @PostMapping("/request-otp")
     public Map<String, String> requestOtp(@Valid @RequestBody RequestOtpRequest request) {
-        String otp = authService.requestOtp(request);
-        return Map.of("message", "OTP issued", "otp", otp);
+        authService.requestOtp(request);
+        return Map.of("message", "OTP issued");
     }
 
     @PostMapping("/forgot-password")
     public Map<String, String> forgotPassword(@Valid @RequestBody RequestOtpRequest request) {
-        String otp = authService.requestOtp(request);
-        return Map.of("message", "OTP sent for password reset", "otp", otp);
+        authService.requestOtp(request);
+        return Map.of("message", "OTP sent for password reset");
     }
 
     @PostMapping("/reset-password")
